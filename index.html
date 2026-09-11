@@ -19,7 +19,7 @@ html,body{margin:0;height:100%;background:#120406;color:var(--ink);font-family:"
 /* 安全區量測：讀取 env() 供 JS 計算可用區域（避開動態島／瀏海／Home 指示條） */
 #safe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;
   padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px)}
-#fx{position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden}   /* v25.11：噴射彩帶專用層 — 脫離 #stage 直掛 body，鋪滿整個畫面、層級最高、不被任何元素遮擋 */
+#fx{position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden}   /* v25.10：噴射彩帶專用層 — 脫離 #stage 直掛 body，鋪滿整個畫面、層級最高、不被任何元素遮擋 */
 #rotate{position:fixed;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:none;justify-content:center;pointer-events:none;z-index:20}
 #rotate span{background:rgba(27,7,9,.92);border:1px solid var(--bezel3);color:var(--ink);border-radius:20px;padding:8px 16px;font-size:14px;display:flex;gap:8px;align-items:center}
 #rotate .ic{display:inline-block;animation:rot 1.6s ease-in-out infinite}
@@ -138,16 +138,19 @@ body.dim #viewport::before{opacity:1}
 #ring svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
 #ring .rg-track{fill:none;stroke:rgba(255,255,255,.10);stroke-width:3;stroke-linecap:round}
 #ring .blob{position:absolute;left:0;top:0;width:var(--d);height:var(--d);border-radius:50%;offset-rotate:0deg;offset-distance:0;will-change:transform;opacity:var(--o);
-  color:#ff5aa0;background:radial-gradient(circle closest-side,currentColor 0,currentColor 42%,color-mix(in srgb,currentColor 55%,transparent) 66%,transparent 100%);animation:rgHueBg 1s linear infinite}   /* 漸層以 currentColor 取色，動畫只動 color 即可循環變色 */
+  color:#ff5aa0;background:radial-gradient(circle closest-side,currentColor 0,currentColor 42%,color-mix(in srgb,currentColor 55%,transparent) 66%,transparent 100%)}
+/* v25.12：變色改由整組容器的 filter:hue-rotate 動畫完成（iOS/Chrome 皆為 GPU 加速濾鏡），光點本身不再每幀重繪 */
+#ring .setA,#ring .setB{position:absolute;inset:0;display:block;pointer-events:none}
+#ring .setA{animation:rgHueSpin 1s linear infinite}
+@keyframes rgHueSpin{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
 #ring .blob.core::after{content:"";position:absolute;left:50%;top:50%;width:34%;height:34%;transform:translate(-50%,-50%);border-radius:50%;background:#fff}
-@keyframes rgHueBg{0%,100%{color:#ff5aa0}25%{color:#ffd23f}50%{color:#3fe0b0}75%{color:#5a8cff}}
 
 /* v21.5 雙線：兩組光條，A 藍（左線）、B 橘（右線）；單線時 B 隱藏、A 走原彩色循環 */
 #ring .setB{display:none}
-#ring.dual .setB{display:contents}
-#ring .setA{display:contents}
-#ring.dual .setA .blob{animation:none;color:#7dd3ff}
-#ring.dual .setB .blob{animation:none;color:var(--dual)}
+#ring.dual .setB{display:block}
+#ring.dual .setA{animation:none}
+#ring.dual .setA .blob{color:#7dd3ff}
+#ring.dual .setB .blob{color:var(--dual)}
 /* ===== v19.8 舞台投射燈（v20.4 與繞框光條並用）=====
    每道燈 = 光源亮點 + 外層霧化光暈 + 內層亮核；邊緣以遮罩柔化、沿長度漸隱，並帶輕微呼吸／閃爍 */
 #spots{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .7s;mix-blend-mode:screen;z-index:5}
@@ -573,6 +576,7 @@ body.lite .cell{transition:transform .12s;will-change:transform}
 
 /* v24.9 選拳卡片邊框特效：與白點交錯脈動（白點亮→卡片暗、白點暗→卡片亮），點選後所選卡片常亮、其餘熄滅 */
 #fateLayer .fcards{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+#fateLayer .fhit{fill:rgba(0,0,0,0);stroke:none;pointer-events:auto;cursor:pointer}   /* v25.13：透明感應區，僅供點擊 */
 #fateLayer .fcard{fill:rgba(255,210,63,0);stroke:#ffd23f;stroke-width:9;stroke-linejoin:round;opacity:0;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 0 14px rgba(255,210,63,.9));transition:opacity .3s,stroke .3s}
 #fateLayer.pick .fcard{animation:fcardPulse 1s ease-in-out infinite;animation-delay:.5s}
 #fateLayer.pick .fcard:nth-of-type(2){animation-delay:.65s}#fateLayer.pick .fcard:nth-of-type(3){animation-delay:.8s}
@@ -1070,7 +1074,17 @@ const CFG = {
 };
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // v25.11：手機（觸控裝置）進入 lite 模式 — 關閉最吃 GPU 的全螢幕混合／塵埃層、踩格不做 filter 過渡；可用網址 ?lite=1／?lite=0 強制切換測試
-{ const q=new URLSearchParams(location.search).get('lite'); const lite=q!=null?q==='1':matchMedia('(pointer:coarse)').matches; document.body.classList.toggle('lite',lite); }
+const URLQ=new URLSearchParams(location.search);
+{ const q=URLQ.get('lite'); const lite=q!=null?q==='1':matchMedia('(pointer:coarse)').matches; document.body.classList.toggle('lite',lite); }
+// v25.12：排查開關 — ?fx=0 關閉繞框光條＋投射燈（只剩踩格）；?fps=1 右上角顯示每幀耗時／掉幀數
+const FX_ON=URLQ.get('fx')!=='0';
+const FPS={raf:0,el:null};
+function fpsMeter(on){ if(URLQ.get('fps')!=='1') return; if(!FPS.el){ FPS.el=document.createElement('div'); FPS.el.style.cssText='position:fixed;right:6px;top:6px;z-index:2147483646;font:12px/1.3 monospace;color:#0f0;background:rgba(0,0,0,.6);padding:4px 6px;border-radius:6px;pointer-events:none;white-space:pre'; document.body.appendChild(FPS.el); }
+  cancelAnimationFrame(FPS.raf); if(!on) return;
+  let last=performance.now(), n=0, drops=0, worst=0, acc=0; const hist=[];
+  const f=()=>{ const t=performance.now(), dt=t-last; last=t; n++; acc+=dt; if(dt>worst) worst=dt; if(dt>25) drops++; hist.push(dt); if(hist.length>30) hist.shift();
+    if(n%6===0){ const avg=hist.reduce((a,b)=>a+b,0)/hist.length; FPS.el.textContent=`frame ${avg.toFixed(1)}ms (${(1000/avg).toFixed(0)}fps)\nlong>25ms: ${drops}  worst ${worst.toFixed(0)}ms\nlite:${document.body.classList.contains('lite')?1:0} fx:${FX_ON?1:0} dpr:${devicePixelRatio}`; }
+    FPS.raf=requestAnimationFrame(f); }; FPS.raf=requestAnimationFrame(f); }
 if(RM){ CFG.t.first=2000; CFG.t.again=1200; CFG.t.special=700; }
 
 /* ===================== 盤面定義（第 02 節） ===================== */
@@ -1334,7 +1348,8 @@ function spotlights(on, dur){
 }
 function runLamps(runs, dur){
   const flow=S.flow;
-  ringLight(true, dur); spotlights(true, dur);   // v20.4：繞框光條 + 追燈投射燈並用
+  if(FX_ON){ ringLight(true, dur); spotlights(true, dur); }   // v20.4：繞框光條 + 追燈投射燈並用（v25.12：?fx=0 可整組關閉以排查卡頓來源）
+  fpsMeter(true);
   // 三階段絕對速度（格/秒）：極快 40%時間 → 中速 20% → 尾速 40% 持續遞減到近乎逐格；首跑 5 秒即 2s／1s／2s
   const P1=dur*0.4, P2=dur*0.2, ramp=Math.min(120,dur*0.03);
   const V_FAST=CFG.v.fast, V_MID=CFG.v.mid, V_END=CFG.v.end;
@@ -1354,13 +1369,13 @@ function runLamps(runs, dur){
   const speed=t=>speedAbs(t)/V_FAST;                      // 0~1 相對速度（音效／殘影用）
   return new Promise(res=>{
     const t0=performance.now(); let lastIdx=-1;
-    const finish=async()=>{ ringLight(false); spotlights(false); clearLit(); runs.forEach(r=>light(r.pre,r.cls)); Snd.stop();
+    const finish=async()=>{ ringLight(false); spotlights(false); fpsMeter(false); clearLit(); runs.forEach(r=>light(r.pre,r.cls)); Snd.stop();
       const kmax=Math.max(...runs.map(r=>r.k)); if(kmax===0) return res();
       await wait(Math.max(...runs.map(r=>r.pause))); if(S.flow!==flow) return res();
       for(let i=1;i<=kmax;i++){ clearLit(); runs.forEach(r=>{ const j=Math.min(i,r.k); light(((r.pre+j*r.dir)%N+N)%N,r.cls); }); Snd.tick(0.2); await wait(CFG.t.hop); if(S.flow!==flow) return res(); }
       clearLit(); runs.forEach(r=>light(r.to,r.cls)); Snd.stop(); res(); };
     const frame=()=>{
-      if(S.flow!==flow){ ringLight(false); spotlights(false); return res(); }
+      if(S.flow!==flow){ ringLight(false); spotlights(false); fpsMeter(false); return res(); }
       let t=performance.now()-t0; if(skipReq){ skipReq=false; return finish(); }
       if(t>=dur) return finish();
       const idx=Math.min(NS-1,Math.floor(dist(t)));
@@ -1603,8 +1618,10 @@ async function fateGame(line){
   const IW=2766, IH=1128, k=LW/IW, offY=(LH-IH*k)/2; const mx=x=>x*k, my=y=>y*k+offY;
   const dots=[{id:'scissors',x:714,y:1048},{id:'rock',x:1382,y:1048},{id:'paper',x:2051,y:1048}];
   const cards={scissors:718,rock:1382,paper:2044}; const cardPoly=cx=>`${cx-118},742 ${cx+118},742 ${cx+150},995 ${cx-150},995`;
+  // v25.13：選拳感應區擴大 — 每張卡片另有一塊透明感應矩形（圖內座標 x 卡心±325、y 705～1128），涵蓋卡片、白點與周邊，三區左右相接不重疊
+  const hitRect=cx=>`x="${cx-325}" y="705" width="650" height="423"`;
   layer.innerHTML=`<div class="fbg"></div>
-    <svg class="fcards" viewBox="0 0 2766 1128" preserveAspectRatio="none">${Object.entries(cards).map(([id,cx])=>`<polygon class="fcard" data-id="${id}" points="${cardPoly(cx)}"/>`).join('')}</svg>
+    <svg class="fcards" viewBox="0 0 2766 1128" preserveAspectRatio="none">${Object.entries(cards).map(([id,cx])=>`<rect class="fhit" data-id="${id}" ${hitRect(cx)}/>`).join('')}${Object.entries(cards).map(([id,cx])=>`<polygon class="fcard" data-id="${id}" points="${cardPoly(cx)}"/>`).join('')}</svg>
     <div class="fhint" style="left:${mx(1382)}px;top:${my(690)}px">${[...'點擊白點出拳'].map((ch,i)=>`<i style="animation-delay:${i*0.12}s">${ch}</i>`).join('')}</div>
     ${dots.map(d=>`<button class="fdot" data-id="${d.id}" style="left:${mx(d.x)}px;top:${my(d.y)}px" aria-label="${d.id}"></button>`).join('')}
     <div class="ftimer" style="left:${mx(2540)}px;top:${my(930)}px"><svg viewBox="0 0 100 100"><circle class="bgc" cx="50" cy="50" r="44"/><circle class="arc" cx="50" cy="50" r="44"/></svg><b>10</b></div>
@@ -1616,7 +1633,7 @@ async function fateGame(line){
   const C=2*Math.PI*44; arc.style.strokeDasharray=C;
   const pick=await new Promise(res=>{ let done=false; const t0=performance.now(), LIMIT=10000;
     fdots.forEach(d=>d.addEventListener('click',()=>{ if(done) return; done=true; Snd.click(); res(d.dataset.id); },{once:true}));
-    layer.querySelectorAll('.fcard').forEach(c=>c.addEventListener('click',()=>{ if(done) return; done=true; Snd.click(); res(c.dataset.id); },{once:true}));   /* 卡片本身也可點 */
+    layer.querySelectorAll('.fcard,.fhit').forEach(c=>c.addEventListener('click',()=>{ if(done) return; done=true; Snd.click(); res(c.dataset.id); },{once:true}));   /* 卡片本身與擴大的感應區都可點（v25.13） */
     const fr=()=>{ if(done) return; if(S.flow!==flow){ done=true; return res('__abort'); } const left=Math.max(0,LIMIT-(performance.now()-t0));
       num.textContent=Math.ceil(left/1000); arc.style.strokeDashoffset=C*(1-left/LIMIT); tm.classList.toggle('hot',left<=3000);
       if(left<=0){ done=true; return res(null); } requestAnimationFrame(fr); }; fr(); });
@@ -1873,7 +1890,7 @@ addEventListener('resize',fit); addEventListener('orientationchange',()=>{ fit()
 if(window.visualViewport){ visualViewport.addEventListener('resize',fit); visualViewport.addEventListener('scroll',fit); }
 fit(); setTimeout(fit,100);
 
-/* v25.11：慶祝特效實例 — 掛在全螢幕專用層 #fx（position:fixed、z-index 最高），
+/* v25.10：慶祝特效實例 — 掛在全螢幕專用層 #fx（position:fixed、z-index 最高），
    彩帶從畫面左右下角噴射並覆蓋整個畫面（含遊戲舞台、遮罩、結算框、規則彈窗、橫放提示），
    3 秒，同一筆結算只播一次；pointer-events:none 所以不會擋到任何點擊。 */
 let CELEB=null, celebKey=0;
