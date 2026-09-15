@@ -19,7 +19,8 @@ html,body{margin:0;height:100%;background:#120406;color:var(--ink);font-family:"
 /* 安全區量測：讀取 env() 供 JS 計算可用區域（避開動態島／瀏海／Home 指示條） */
 #safe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;
   padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px)}
-#fx{position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden}   /* v25.10：噴射彩帶專用層 — 脫離 #stage 直掛 body，鋪滿整個畫面、層級最高、不被任何元素遮擋 */
+#fx{position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden}   /* v27.4：僅金幣噴泉使用（最上層，蓋過獎格／LOGO／領獎鍵） */
+#fxLow{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}   /* v27.4：彩帶層 — 置於 #stage 之前、壓黑層之上，在獎格／LOGO／領獎鍵下方 */   /* v25.10：噴射彩帶專用層 — 脫離 #stage 直掛 body，鋪滿整個畫面、層級最高、不被任何元素遮擋 */
 #rotate{position:fixed;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:none;justify-content:center;pointer-events:none;z-index:20}
 #rotate span{background:rgba(27,7,9,.92);border:1px solid var(--bezel3);color:var(--ink);border-radius:20px;padding:8px 16px;font-size:14px;display:flex;gap:8px;align-items:center}
 #rotate .ic{display:inline-block;animation:rot 1.6s ease-in-out infinite}
@@ -153,6 +154,26 @@ body.dim #viewport::before{opacity:1}
 /* ===== v20.3 繞框光條 ===== */
 /* v25.11：效能 — 光條改為沿 CSS offset-path 排列的一串小光點（頭亮尾淡的彗尾），每幀只改 offset-distance（= transform，合成器處理），
    不再用整盤大小的 SVG 描邊 + dashoffset（每幀讓整個盤面大小的 SVG 圖層重新光柵化，是手機掉幀主因） */
+
+/* v27.0：內盤格心定點燈 */
+#dots{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:visible;transition:opacity .4s}
+#board.jpMode #dots,#board:has(#fateLayer) #dots,#board:has(#chanceLayer) #dots{opacity:0}
+#dots .dot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:rgba(255,255,255,.28);box-shadow:0 0 0 1px rgba(255,255,255,.12);will-change:transform,opacity;
+  --dc:#fff}   /* 狀態切換不做過渡（高速時過渡會讓頭燈永遠亮不起來），殘影分級本身就是漸隱 */
+#dots.idle .dot{animation:dotIdle 3.6s ease-in-out infinite;animation-delay:calc((30 - var(--i))*-0.12s)}   /* v27.1：待機順時針流光 — 負延遲越大＝相位越早；原本 P 值越大越早亮，波就往 P 減少方向（逆時針）走，改為 (30-P) 後高 P 格較晚亮，波沿 P 遞增（順時針）前進 */
+@keyframes dotIdle{0%,70%,100%{background:rgba(255,255,255,.28);box-shadow:0 0 0 1px rgba(255,255,255,.12);transform:scale(1)}82%{background:#fff;box-shadow:0 0 8px 2px rgba(255,255,255,.75);transform:scale(1.35)}}
+#dots .dot.h{background:var(--dc);box-shadow:0 0 10px 3px color-mix(in srgb,var(--dc) 80%,transparent),0 0 2px 1px #fff inset;transform:scale(1.6)}
+#dots .dot.t1{background:color-mix(in srgb,var(--dc) 85%,transparent);box-shadow:0 0 7px 2px color-mix(in srgb,var(--dc) 55%,transparent);transform:scale(1.35)}
+#dots .dot.t2{background:color-mix(in srgb,var(--dc) 65%,transparent);box-shadow:0 0 5px 1px color-mix(in srgb,var(--dc) 35%,transparent);transform:scale(1.2)}
+#dots .dot.t3{background:color-mix(in srgb,var(--dc) 45%,transparent);transform:scale(1.08)}
+#dots .dot.t4{background:color-mix(in srgb,var(--dc) 30%,transparent)}
+#dots .dot.cS{--dc:#ff5aa0}
+#dots.run:not(.multi),#dots.hold:not(.multi){animation:dotHue 1s linear infinite}   /* 單線：整組同相位彩色循環（容器濾鏡，殘影與頭燈同色漸隱） */
+@keyframes dotHue{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+#dots .dot.cL{--dc:#7dd3ff}#dots .dot.cR{--dc:var(--dual)}
+#dots .dot.cF1{--dc:var(--f1)}#dots .dot.cF2{--dc:var(--f2)}#dots .dot.cF3{--dc:var(--f3)}
+#dots.hold .dot.h{animation:dotHold 1s ease-in-out infinite alternate}   /* 停燈：頭燈與得獎格同節奏呼吸 */
+@keyframes dotHold{from{transform:scale(1.25);opacity:.75}to{transform:scale(1.7);opacity:1}}
 #ring{position:absolute;inset:0;pointer-events:none;z-index:6;opacity:0;transition:opacity .5s;overflow:visible}
 #ring.on{opacity:1}
 #ring.warm,#spots.warm{opacity:.002!important;visibility:visible!important;transition:none!important}   /* v26.4：載入後預熱兩幀 */
@@ -269,7 +290,7 @@ body.dim #viewport::before{opacity:1}
 #board.greenRun .cell.on{box-shadow:0 0 0 4px var(--green),0 0 20px 5px rgba(63,224,138,.75)}
 #board.greenRun .cell.trail{box-shadow:0 0 14px 3px rgba(63,224,138,.5)}
 /* purple zoom + reel (reel lives inside the enlarged cell) */
-#zoom{position:absolute;z-index:5;border-radius:10px;border:3px solid #fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;overflow:hidden;
+#zoom{position:absolute;z-index:7;   /* v27.5：放大轉盤格層級高於內盤定點燈（#dots z-index 6），放大時不會看到燈號壓在格子上 */ border-radius:10px;border:3px solid #fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;overflow:hidden;
   background:radial-gradient(circle at 50% 30%,#c98cff,#8a3ae6 45%,#4a1690);box-shadow:0 0 34px 8px rgba(180,85,255,.7);
   transition:left .5s cubic-bezier(.2,.8,.2,1),top .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1);text-shadow:0 2px 6px rgba(0,0,0,.6)}
 #zoom .hd{display:none}
@@ -461,6 +482,8 @@ body.lite #board .jpbeam,body.lite #board .jppool{mix-blend-mode:normal}
 #skip.show{display:inline-block}
 /* ===== v25.77：按下啟動 → 盤內啟動鍵消失，同一位置切換成 SKIP 鍵 ===== */
 #actions:has(#skip.show) #start{display:none!important}
+/* v27.2：非待機畫面時，無法操作的灰色啟動鍵一律不顯示（機會降臨後接雙線／三線、免費再跑等 SKIP 未重新顯示的情況都涵蓋）；領獎／殘念不受影響 */
+body.busy #start[disabled]:not(.claim):not(.zannen){display:none!important}
 #skip.show{width:169px;height:52px;padding:0;font-size:19px;border-radius:26px;
   border:2px solid rgba(255,243,196,.55);color:#ffe9a8;
   background:linear-gradient(#4a2a18,#2d1410 62%,#1c0a0c);
@@ -726,8 +749,9 @@ body.lite #board .jpbeam,body.lite #board .jppool{mix-blend-mode:normal}
 .cell.dim{opacity:.35;filter:grayscale(.4)}
 #chanceLayer{position:absolute;inset:0;z-index:7;pointer-events:none}
 .cclone{position:absolute!important;margin:0;z-index:2;--s:1;transition:left .55s cubic-bezier(.2,.8,.2,1),top .55s cubic-bezier(.2,.8,.2,1),width .55s,height .55s,opacity .45s,transform .07s ease-out,filter .1s}
-.cclone.ghost{filter:blur(1.5px) brightness(1.25);z-index:1}
-.cclone.moved.ghost{opacity:0!important}
+.cclone.ghost{filter:blur(1.2px) brightness(1.35) saturate(1.3) drop-shadow(0 0 10px rgba(255,255,255,.55));z-index:1;transform:scale(var(--gs,1));transform-origin:center}   /* v27.8：殘影更亮、帶白色光暈、越後越小 */
+.cclone.ghost.g4,.cclone.ghost.g5{filter:blur(2px) brightness(1.5) saturate(1.4) drop-shadow(0 0 14px rgba(255,255,255,.6))}
+.cclone.moved.ghost{opacity:0!important;transition-duration:.55s,.55s,.55s,.55s,.75s,.07s,.1s}   /* 抵達後殘影拖長 .75s 淡出，尾巴收得更綿 */
 .cclone .pid{display:none}
 /* v23.2：機會面板上的複製格保留結果字排版（複製時移除了 won 類別）：單行水平置中不換行、雙行維持上下 */
 .cclone .mult{display:inline-block!important;text-align:center;white-space:nowrap;font-weight:900;line-height:1;letter-spacing:-2px;text-shadow:0 2px 6px rgba(0,0,0,.6);font-size:0!important;color:#fff}
@@ -875,7 +899,7 @@ body.lite #board .jpbeam,body.lite #board .jppool{mix-blend-mode:normal}
 <div id="safe"></div>
 <div id="fx" aria-hidden="true"></div>
 <div id="rotate"><span><span class="ic">📱</span>建議將手機橫放以取得最佳體驗</span></div>
-<div id="viewport"><div id="stage">
+<div id="viewport"><div id="fxLow" aria-hidden="true"></div><div id="stage">
 
   <div id="top">
     <div class="left-slot">
@@ -1701,10 +1725,10 @@ let logoGone=false;
 function logoVis(){ const L=document.getElementById('logoLayer'); if(!L) return; const sc=document.querySelector('.scene.show')?.id; const busy=document.getElementById('chanceLayer')||document.getElementById('fateLayer')||board.classList.contains('jpMode');
   if(sc==='idle'){ logoGone=false; } else if(sc!=='running'||busy){ logoGone=true; }
   L.classList.toggle('show',!logoGone&&(sc==='idle'||sc==='running')); }
-{ const _scene=scene; scene=function(id){ _scene(id); logoVis(); }; }
+{ const _scene=scene; scene=function(id){ _scene(id); document.body.classList.toggle('busy',id!=='idle'); logoVis(); if(RING_DOTS&&id==='idle') try{ dotRingIdle(); }catch(e){} }; }
 new MutationObserver(logoVis).observe(board,{childList:true,attributes:true,attributeFilter:['class']}); logoVis();
 /* v26.4：閒置時預建投射燈與繞框光條 DOM，首跑不必臨時建構 */
-setTimeout(()=>{ try{ if(FX_ON){ const L=ensureSpots(); ringLight(true,1); ringLight(false); const R=document.getElementById('ring');
+setTimeout(()=>{ try{ if(FX_ON){ const L=ensureSpots(); if(RING_DOTS){ dotRingIdle(); } else { ringLight(true,1); ringLight(false); } const R=document.getElementById('ring');
   /* 以近乎透明的方式顯示兩幀，讓瀏覽器先光柵化、建立合成層並解碼投射燈圖片（避免首跑第一幀才做這些工作） */
   [L,R].forEach(e=>{ if(e){ e.classList.add('warm'); } }); requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{ [L,R].forEach(e=>{ if(e) e.classList.remove('warm'); }); },120)));
   Object.values(SP_IMG||{}).forEach(u=>{ const im=new Image(); im.src=u; im.decode&&im.decode().catch(()=>{}); }); } }catch(e){} },600);   // v17.3：非待機（跑燈／結算／JP）期間盤內壓黑，按下領獎回到 idle 才解除
@@ -1792,7 +1816,7 @@ function clearLitFor(line){ /* 終局前清掉本線跑燈殘影，保留他線�
 /* v25.76：尚未依序檢視的線（雙線右線、命運三線 ❷❸），停燈位置的燈要一直亮著，不可在處理前一線時被清掉 */
 function relightPending(cur){ const r=S.round; if(!r) return; for(const o of r.lines){ if(o===cur||o.done||o.pendingStop==null) continue; light(o.pendingStop,lineCls(o)); } }
 function clearFinal(){ for(let p=0;p<N;p++){ cellEl[p].classList.remove('final','fS','fL','fR','fF1','fF2','fF3','on','onL','onR','onF1','onF2','onF3','trail'); syncBadges(p); } }
-function light(p,cls='on'){ cellEl[p].classList.add(cls); lit.add(p); SPOT.lit=p; SPOT.lits[cls]=p; if(cls[2]==='F') syncBadges(p); }
+function light(p,cls='on'){ cellEl[p].classList.add(cls); lit.add(p); SPOT.lit=p; SPOT.lits[cls]=p; if(cls[2]==='F') syncBadges(p); if(RING_DOTS&&!DOTS.on&&DOTS.el) try{ dotRingApply(); }catch(e){} }   /* v27.3：跑燈結束後的假停→跳格、重亮等也同步定點燈（原本頭燈停在假停格，與特效框不一致） */
 // runs: [{from, to, dir(+1/-1), cls}]; animate together, resolve when all stopped
 // v20.3：跑燈特效改為「繞框光條」— 一條發光光條沿盤格外框滑行，位置追著目前亮起的格子（帶慣性），
 //        由外層柔光 + 內層亮核 + 前端光點組成；停燈後淡出。v20.4 起與投射燈並用。
@@ -1801,7 +1825,42 @@ const SPOT={lit:null, lits:{}, raf:0, s:null, s2:null, t0:0, dur:0};   // v21.5�
 // v25.11：格心（#board 座標系，未含 transform）— 跑燈期間盤面不變，啟動時算一次即可
 function cellCenters(){ return cellEl.map(el=>el?[el.offsetLeft+el.offsetWidth/2, el.offsetTop+el.offsetHeight/2]:null); }
 function spotTargets(){ const L=SPOT.lits.onL, Rr=SPOT.lits.onR; if(L!=null && Rr!=null) return [L,Rr,true]; return [SPOT.lit,SPOT.lit,false]; }
+/* v27.0：內盤「格心定點燈」— 每格內緣中心一顆固定小白點，跑燈時依亮格逐點亮起並拖 4 級殘影；待機時全圈慢速順時針流光；
+   停燈後得獎格的點持續呼吸直到領獎。取代 v20.3～v26.9 的滑行式繞框光條（舊程式保留，RING_DOTS=false 可切回）。
+   顏色：單線彩色循環、雙線 A 藍／B 橘、三線 ✂紅／✊綠／✋黃（沿用既有變數）。每次只切換 class，不做逐幀位移計算。 */
+const RING_DOTS=true;
+const DOTS={el:null,dots:[],hist:{},last:{},raf:0,on:false};
+function dotRingBuild(){ const bw=board.offsetWidth, bh=board.offsetHeight, ctr=document.getElementById('center'); if(!bw||!ctr) return null;
+  const o=6, rr=18, X0=ctr.offsetLeft+o, Y0=ctr.offsetTop+o, RW=bw-2*X0, RH=bh-2*Y0, key=`${bw}x${bh}x${X0}x${Y0}`;
+  let D=DOTS.el; if(!D){ D=document.createElement('div'); D.id='dots'; board.appendChild(D); DOTS.el=D; }
+  if(D.dataset.key===key) return D; D.dataset.key=key; D.innerHTML=''; DOTS.dots=[];
+  const CC=cellCenters(), q=rr*(1-Math.SQRT1_2);
+  for(let p=0;p<N;p++){ const c=CC[p]; if(!c) { DOTS.dots.push(null); continue; } let [x,y]=c, X,Y;
+    const top=y<Y0, bot=y>Y0+RH, lef=x<X0, rig=x>X0+RW;
+    if(top&&lef){ X=X0+q; Y=Y0+q; } else if(top&&rig){ X=X0+RW-q; Y=Y0+q; } else if(bot&&rig){ X=X0+RW-q; Y=Y0+RH-q; } else if(bot&&lef){ X=X0+q; Y=Y0+RH-q; }
+    else if(top){ X=Math.max(X0+rr,Math.min(X0+RW-rr,x)); Y=Y0; } else if(bot){ X=Math.max(X0+rr,Math.min(X0+RW-rr,x)); Y=Y0+RH; }
+    else if(lef){ X=X0; Y=Math.max(Y0+rr,Math.min(Y0+RH-rr,y)); } else { X=X0+RW; Y=Math.max(Y0+rr,Math.min(Y0+RH-rr,y)); }
+    const d=document.createElement('i'); d.className='dot'; d.style.left=X+'px'; d.style.top=Y+'px'; d.style.setProperty('--i',p); D.appendChild(d); DOTS.dots.push(d); }
+  return D; }
+function dotRingApply(){ const ds=DOTS.dots; if(!ds.length) return;
+  const F=[SPOT.lits.onF1,SPOT.lits.onF2,SPOT.lits.onF3], triple=F.filter(x=>x!=null).length>=2; const [a,b,dual]=spotTargets();
+  const heads=triple?[['F1',F[0]],['F2',F[1]],['F3',F[2]]]:dual?[['L',a],['R',b]]:[['S',a]];
+  DOTS.el.classList.toggle('multi',dual||triple);
+  let changed=false; for(const [k,p] of heads){ if(p==null) continue; if(DOTS.last[k]!==p){ DOTS.last[k]=p; (DOTS.hist[k]=DOTS.hist[k]||[]).unshift(p); if(DOTS.hist[k].length>5) DOTS.hist[k].length=5; changed=true; } }
+  if(!changed) return;
+  ds.forEach(d=>{ if(d) d.className='dot'; });
+  const keys=heads.map(h=>h[0]);
+  const maxT=DOTS.on?5:1;   /* v27.3：停燈（hold）狀態只亮頭燈，不畫殘影 */
+  for(const k of keys){ const h=DOTS.hist[k]||[]; for(let i=Math.min(h.length,maxT)-1;i>=0;i--){ const d=ds[h[i]]; if(!d) continue; d.classList.add(i===0?'h':'t'+i, 'c'+k); } } }
+function dotRing(on,dur){ const D=dotRingBuild(); if(!D) return;
+  if(on){ DOTS.hist={}; DOTS.last={}; DOTS.on=true; D.classList.remove('idle','hold'); D.classList.add('run'); cancelAnimationFrame(DOTS.raf);
+    const loop=()=>{ dotRingApply(); DOTS.raf=requestAnimationFrame(loop); }; loop(); }
+  else { cancelAnimationFrame(DOTS.raf); DOTS.on=false; dotRingApply(); D.classList.remove('run'); D.classList.add('hold');   // 停燈：殘影退去，頭燈留在得獎格呼吸
+    DOTS.dots.forEach(d=>{ if(d) d.className=d.className.replace(/\bt[1-4]\b/g,'').replace(/\s+/g,' ').trim(); }); } }
+window.addEventListener('resize',()=>{ if(DOTS.el){ DOTS.el.dataset.key=''; dotRingBuild(); if(!DOTS.on) DOTS.el.classList.add('idle'); } });
+function dotRingIdle(){ const D=dotRingBuild(); if(!D) return; cancelAnimationFrame(DOTS.raf); DOTS.on=false; DOTS.hist={}; DOTS.last={}; DOTS.dots.forEach(d=>{ if(d) d.className='dot'; }); D.classList.remove('run','hold'); D.classList.add('idle'); }
 function ringLight(on, dur){
+  if(RING_DOTS){ dotRing(on,dur); return; }   /* v27.0：定點燈模式 */
   let R=document.getElementById('ring');
   if(on){
     const bw=board.offsetWidth, bh=board.offsetHeight, ctr=document.getElementById('center');
@@ -1955,8 +2014,10 @@ $('#start').addEventListener('click',()=>{ if(S.state==='RESULT'){ Snd.click(); 
     /* v25.6：領獎節奏 — 遮罩保留、立即噴彩帶（結算框保留）→ 彩帶演完切回 LOGO 主場景，遮罩此時才關閉 */
     S.state='CLAIMING'; const b=$('#start'); b.disabled=true; const f=S.flow;
     rollTotalDown(S.round.total, f);   /* v25.83：本局總獎數字快速滾動歸 0（金幣領走） */
+    /* v27.9：所有獎格中獎一律彩帶＋金幣噴泉（取消 v27.6 的一般格只噴金幣規則） */
+    const Ls=S.round.lines||[], isJP=Ls.some(l=>l.result&&l.result.kind==='jp');
     celebrate();
-    coinFountain(2000, !!(S.round.lines||[]).some(l=>l.result&&l.result.kind==='jp'));   /* v25.90：JP 中獎維持全高噴泉，其他獎高度約畫面 1/3 */
+    coinFountain(2000, isJP);   /* v25.90：JP 中獎維持全高噴泉，其他獎高度約畫面 1/3 */
     setTimeout(()=>{ if(S.flow!==f) return; b.disabled=false; toIdle(); }, 3000+150); } else if(S.state==='CHANCE'){ Snd.click(); if(chanceResolve) chanceResolve(); } else startRound(); });
 $('#skip').addEventListener('click',()=>{ skipReq=true; Snd.click(); });
 $('#rulesBtn').addEventListener('click',()=>{ Snd.click(); $('#rules').classList.add('show'); });
@@ -2346,17 +2407,20 @@ async function chanceGame(line){
   let ch=ih*0.44*0.9, cw=ch*ar; if(cw*3>iw*0.94*0.9){ cw=iw*0.94*0.9/3; ch=cw/ar; }   // v18.9：特殊格等比縮小 10%，仍以內框置中
   const gw=3*cw, gh=2*ch, gx=ix+(iw-gw)/2, gy=iy+(ih-gh)/2;   // v25.76：取消 v19.3 的上移 4px，改為完全置中
   const clones={}, home={};
+  /* v27.7：六格同步表演 — 先一次建好全部分身（含殘影），再於同一幀一起飛向面板（原本依序一格一格、每格間隔 150ms） */
+  const flyAll=[];
   for(const p of CHANCE_ORDER){
     const src=cellEl[p]; const [r,c]=CHANCE_SLOT[p]; const tx=gx+c*cw, ty=gy+r*ch;
     home[p]={x:src.offsetLeft,y:src.offsetTop,w:src.offsetWidth,h:src.offsetHeight};
-    const made=[];
-    for(let k=2;k>=0;k--){ const cl=src.cloneNode(true); cl.classList.remove('on','shine','won','final','fS','fL','fR','fF1','fF2','fF3','onF1','onF2','onF3','disabled');  cl.classList.add('cclone'); if(k) cl.classList.add('ghost');
-      cl.style.cssText=`left:${home[p].x}px;top:${home[p].y}px;width:${home[p].w}px;height:${home[p].h}px;transition-delay:${k*80}ms;opacity:${k?.4:1}`; layer.appendChild(cl); made.push(cl); if(!k) clones[p]=cl; }
-    src.classList.add('dim'); Snd.tag();
-    await sleep(30); made.forEach(cl=>{ cl.classList.add('moved'); cl.style.left=tx+'px'; cl.style.top=ty+'px'; cl.style.width=cw+'px'; cl.style.height=ch+'px'; });
-    await wait(150); if(S.flow!==flow){ layer.remove(); return null; }
+    /* v27.8：殘影強化 — 每格 5 層殘影（原 2 層），依序落後 55ms、越後越淡越小並帶格色光暈，飛行途中形成拖尾，抵達後逐層淡出 */
+    const NG=5;
+    for(let k=NG;k>=0;k--){ const cl=src.cloneNode(true); cl.classList.remove('on','shine','won','final','fS','fL','fR','fF1','fF2','fF3','onF1','onF2','onF3','disabled');  cl.classList.add('cclone'); if(k) cl.classList.add('ghost','g'+k);
+      const f=k/NG; cl.style.cssText=`left:${home[p].x}px;top:${home[p].y}px;width:${home[p].w}px;height:${home[p].h}px;transition-delay:${k*55}ms;opacity:${k?(0.7-0.5*f).toFixed(2):1};--gs:${k?(1-0.18*f).toFixed(3):1}`; layer.appendChild(cl); flyAll.push([cl,tx,ty]); if(!k) clones[p]=cl; }
+    src.classList.add('dim');
   }
-  await wait(600); layer.querySelectorAll('.ghost').forEach(g=>g.remove());
+  Snd.tag(); await sleep(30); if(S.flow!==flow){ layer.remove(); return null; }
+  flyAll.forEach(([cl,tx,ty])=>{ cl.classList.add('moved'); cl.style.left=tx+'px'; cl.style.top=ty+'px'; cl.style.width=cw+'px'; cl.style.height=ch+'px'; });
+  await wait(950); if(S.flow!==flow){ layer.remove(); return null; } layer.querySelectorAll('.ghost').forEach(g=>g.remove());   /* v27.8：等殘影完全淡出 */
   // v23.3) 趣味答題：面板連同六格左移貼齊內盤左框，右側出題；10 秒內選 A～D。答對→面板回中央後自動起跑（v25.76）；答錯／未答→六格回原位、回傳 'FAIL'（結算 0）
   {
     const innerL=ctr.offsetLeft+GAP, innerR=bw-ctr.offsetLeft-GAP, dx=innerL-px;
@@ -2458,8 +2522,18 @@ function jpPick(line){
   return new Promise(res=>{
     const flow=S.flow;
     // 伺服器端生成真實固定箱面
-    const labels=[]; for(const t in CFG.chestMix) for(let i=0;i<CFG.chestMix[t];i++) labels.push(t);
-    for(let i=labels.length-1;i>0;i--){ const j=rnd(i+1); [labels[i],labels[j]]=[labels[j],labels[i]]; }
+    /* v28.0：點點樂改為「揭示序列」— 先依原本 20 張牌的洗牌結果決定自然中獎級別（機率與原規則完全相同），
+       再重排揭示順序製造期待感：每個非中獎級別最多開出 2 張（差一張就中），GRAND／MAJOR 一定各出現 2 張近失，
+       中獎級別的第 3 張永遠是最後一翻，並確保最後幾翻裡有高級別牌把緊張感推到頂點。標籤在翻牌時依序指定（與位置無關）。 */
+    const natural=(()=>{ const L=[]; for(const t in CFG.chestMix) for(let i=0;i<CFG.chestMix[t];i++) L.push(t); for(let i=L.length-1;i>0;i--){ const j=rnd(i+1); [L[i],L[j]]=[L[j],L[i]]; } const c={}; for(const t of L){ c[t]=(c[t]||0)+1; if(c[t]>=3) return t; } return 'MINI'; })();
+    const seq=(()=>{ const W=natural, hi=['GRAND','MAJOR'].filter(t=>t!==W), lo=['MINI','MINOR'].filter(t=>t!==W); const body=[W,W];
+      hi.forEach(t=>body.push(t,t)); lo.forEach(t=>{ const k=1+rnd(2); for(let i=0;i<k;i++) body.push(t); });
+      for(let i=body.length-1;i>0;i--){ const j=rnd(i+1); [body[i],body[j]]=[body[j],body[i]]; }
+      // 最後三翻（不含結尾）至少一張 GRAND／MAJOR；且開場第一翻不是中獎級別（避免一開始就露底）
+      const isHi=t=>t==='GRAND'||t==='MAJOR'; const tail=body.slice(-3); if(!tail.some(isHi)){ const a=body.findIndex(isHi), b=body.length-1-rnd(3); if(a>=0) [body[a],body[b]]=[body[b],body[a]]; }
+      if(body[0]===W){ const j=body.findIndex(t=>t!==W); if(j>0) [body[0],body[j]]=[body[j],body[0]]; }
+      body.push(W); return body; })();
+    log(`點點樂揭示序列（${natural}）：${seq.join('→')}`); let revealed=0; const labels=Array(20).fill(null);   /* 20 張牌位，標籤翻牌時才指定 */
     const count={MINI:0,MINOR:0,MAJOR:0,GRAND:0}; const opened=new Set(); let ended=false, busy=false, idleT, autoT, autoRun=null;
     scene('jp'); msg(`${lineName(line)}｜點出 3 個相同彩金標籤`,true); $('#jp').classList.remove('finale','finale2'); $('#jp .sunburst')?.remove(); document.querySelectorAll('.tier').forEach(t=>{ t.style.transform=''; t.classList.remove('sheen','center'); });
     const grid=$('#chests'); grid.innerHTML=''; $('#jp .auto').textContent=''; $('#jp .auto').className='auto'; delete $('#jp .auto').dataset.txt;   /* v25.76：清掉上一次點點樂的膠囊文字快取（否則第二次進入時倒數元素不存在而報錯，導致點擊無反應） */
@@ -2475,7 +2549,7 @@ function jpPick(line){
     async function open(id,auto){
       if(S.flow!==flow||ended||busy||opened.has(id)) return;            // 同箱重點只回原結果、已終局拒絕
       if(!auto){ if(autoRun) return; armIdle(); }
-      busy=true; opened.add(id); const lb=labels[id]; const b=chests[id]; Snd.chest(); jpBeamTo(b);   /* v25.76：投射燈 */
+      busy=true; opened.add(id); const lb=labels[id]=seq[Math.min(revealed++,seq.length-1)]; const b=chests[id]; Snd.chest(); jpBeamTo(b);   /* v28.0：依揭示序列指定標籤 */   /* v25.76：投射燈 */
       b.classList.add('open',lb); b.disabled=true; b.insertAdjacentHTML('beforeend',`<span class="burst"></span><span class="lb"><img src="${tierWord(lb)}" alt="${lb}"></span>`);   /* v25.76：翻牌爆光帶出彩金標籤圖 */
       await sleep(CFG.t.chestFlip); if(S.flow!==flow) return;
       count[lb]++; const tier=document.querySelector('.tier.'+lb); tier.querySelectorAll('.c i')[count[lb]-1].classList.add('f'); Snd.tag();
@@ -2579,7 +2653,7 @@ function coinFountain(dur=3000,full=true){ try{   /* v25.90：full=true 為 JP �
   const end=()=>{ if(!alive) return; alive=false; cancelAnimationFrame(raf); cv.remove(); if(FOUNTAIN&&FOUNTAIN.cv===cv) FOUNTAIN=null; };
   FOUNTAIN={cv,stop:end}; raf=requestAnimationFrame(step);
 }catch(e){ console.warn('coinFountain',e); } }
-function celebrate(){ try{ if(!CELEB) CELEB=new LuckyGoCelebration($('#fx'),{duration:3,density:1,zIndex:1}); const k=++celebKey; CELEB.play({seed:9527+k}); }catch(e){ console.warn('celebration',e); } }
+function celebrate(){ try{ if(!CELEB) CELEB=new LuckyGoCelebration($('#fx'),{duration:3,density:1,zIndex:1});   /* v27.6：彩帶回到最上層 #fx，與金幣噴泉同層（皆在獎格／LOGO／領獎鍵之上） */ const k=++celebKey; CELEB.play({seed:9527+k}); }catch(e){ console.warn('celebration',e); } }
 /* init */
 startIdle();
 renderBoard(null); renderStatus(null); renderLines(); setBalance(); updateStars(); log('活動進入，等待啟動');
