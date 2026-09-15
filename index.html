@@ -235,6 +235,8 @@ body.lite #spots .dust{display:none}   /* v25.11：手機不畫塵埃（兩層�
 #idle .mini span{padding:4px 10px;border-radius:10px;background:rgba(0,0,0,.35);border:1px solid #4a2415}
 #running .msg{font-size:26px;font-weight:900;letter-spacing:4px;color:var(--ink)}
 #running .sub{margin-top:8px;color:var(--ink-dim);font-size:13px}
+#event .d,#event .free{display:none}   /* v25.92：資訊說明只留標題＋結果值 */
+#event .h:empty{display:none}
 #event .k{font-size:14px;letter-spacing:3px;color:var(--ink-dim)}
 #event .h{font-size:56px;font-weight:900;line-height:1.1;margin:6px 0;font-variant-numeric:tabular-nums}
 #event .d{font-size:16px;color:var(--ink)}
@@ -320,7 +322,7 @@ body.lite #spots .dust{display:none}   /* v25.11：手機不畫塵埃（兩層�
 .chest{background:none!important;border:0!important;border-radius:12px}
 .chest.open{background:rgba(0,0,0,.35)!important}
 .chest .lb{display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;z-index:2}
-.chest .lb img{width:86%;height:auto;max-height:74%;object-fit:contain;   /* v25.76：所有標籤以同寬呈現，大小一致 */filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));animation:lbPop .5s cubic-bezier(.2,1.4,.4,1) both;animation-delay:.18s}
+.chest .lb img{width:86%;height:auto;max-height:74%;object-fit:contain;   /* v25.84：改為同「字高」比例 — 各標籤寬度依原圖寬（MINI 217／MINOR 284／MAJOR 310／GRAND 318）等比，GRAND 為 86% */filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));animation:lbPop .5s cubic-bezier(.2,1.4,.4,1) both;animation-delay:.18s}
 @keyframes lbPop{0%{transform:scale(.2) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 /* v25.76：翻牌爆光 — 同色光環擴散＋白閃 */
 .chest .burst{position:absolute;left:50%;top:50%;width:70%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) scale(.2);pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(255,255,255,.95) 0 18%,color-mix(in srgb,currentColor 80%,transparent) 30%,transparent 70%);animation:chestBurst .7s ease-out forwards}
@@ -336,6 +338,8 @@ body.lite #spots .dust{display:none}   /* v25.11：手機不畫塵埃（兩層�
 #jp.finale .tier:not(.win),#jp.finale .auto,#jp.finale .chest:not(.keep){opacity:0;transition:opacity .5s;pointer-events:none}
 #jp.finale.finale2 .chest.keep{opacity:0;transition:opacity .45s}   /* v25.76：標題開始移動時，保留的 3 張再淡出 */
 #jp .chest.keep{transition:opacity .45s}
+/* v25.84：各級標籤等字高 */
+.chest.MINI .lb img{width:58.7%}.chest.MINOR .lb img{width:76.8%}.chest.MAJOR .lb img{width:83.8%}.chest.GRAND .lb img{width:86%}
 #jp .chest.keep .lb img{animation:claim 1s ease-in-out infinite alternate}
 #jp .tier{transition:transform .55s cubic-bezier(.2,.8,.2,1)}
 #jp .tier .tw{transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-origin:50% 100%}
@@ -435,9 +439,19 @@ body.lite #board .jpbeam,body.lite #board .jppool{mix-blend-mode:normal}
 #stars .ring{position:absolute;left:-2px;top:-2px;width:calc(100% + 4px);height:calc(100% + 4px);pointer-events:none;overflow:visible}
 #stars .ring rect{x:2px;y:2px;width:calc(100% - 4px);height:calc(100% - 4px);rx:24px;fill:none;stroke-width:3}
 #stars .ring .tr{stroke:rgba(255,255,255,.12)}
-#stars .ring .pg{stroke:var(--lamp);stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .25s linear;filter:drop-shadow(0 0 4px rgba(255,210,63,.7))}
+#stars .ring .pg{stroke:#3ee02a;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .25s linear;filter:drop-shadow(0 0 4px rgba(62,224,42,.7))}   /* v25.96：進度框改為電瓶綠 */
+/* v25.97：電瓶滿格時，膠囊綠色邊框呼吸閃爍 */
+#stars.full .ring .pg{animation:ringBreath 1s ease-in-out infinite alternate}   /* v25.98：與啟動鍵同節奏 1s */
+/* v25.98：待機可啟動時，啟動鍵與電瓶綠框同步呼吸 */
+#start.img.breath:not([disabled]){animation:claimImg 1s ease-in-out infinite alternate}
+@keyframes ringBreath{from{opacity:.35;filter:drop-shadow(0 0 2px rgba(62,224,42,.4))}to{opacity:1;filter:drop-shadow(0 0 9px rgba(62,224,42,1))}}
 #start{height:46px;min-width:200px;padding:0 24px;border-radius:23px;border:2px solid #fff3c4;font-size:19px;font-weight:900;letter-spacing:3px;
   background:linear-gradient(#ffe37a,#e0a91a 60%,#b8860b);color:#3a2a06;box-shadow:0 4px 0 #7a5313,0 0 24px rgba(255,210,63,.4);transition:transform .1s,filter .2s}
+/* v25.96：電瓶不足提示 — 置於啟動鍵正上方，深色膠囊、黃字 */
+#noBatt{position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);white-space:nowrap;padding:4px 14px;border-radius:999px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);color:#c8c8c8;font-size:16px;font-weight:900;text-shadow:0 1px 3px #000;pointer-events:none;opacity:0;transition:opacity .3s;z-index:5}   /* v25.99：字體改灰 */
+#noBatt.show{opacity:1}
+#noBatt i{display:inline-block;font-style:normal}
+#noBatt.show i{animation:fhintJump 1.6s ease-in-out infinite}
 #start:active{transform:translateY(3px);box-shadow:0 1px 0 #7a5313}
 #start[disabled]{background:linear-gradient(#6a6a6a,#454545 60%,#333);color:#9a9a9a;border-color:#7a7a7a;cursor:not-allowed;box-shadow:0 4px 0 #222}
 #start.claim{background:linear-gradient(#9dffc4,#3fe08a 60%,#1c9a58);border-color:#e8fff2;box-shadow:0 4px 0 #0f5a33,0 0 24px rgba(63,224,138,.5);animation:claim 1s ease-in-out infinite alternate}
@@ -453,7 +467,7 @@ body.lite #board .jpbeam,body.lite #board .jppool{mix-blend-mode:normal}
   transition:transform .1s,filter .2s,box-shadow .2s}
 #skip.show:hover{border-color:rgba(255,243,196,.9);filter:brightness(1.12)}
 #skip.show:active{transform:translateY(3px);box-shadow:0 1px 0 #23120a}
-#msg{text-align:left;font-size:13px;color:var(--ink-dim)}
+#msg{text-align:left;font-size:13px;color:var(--ink-dim);display:none!important}   /* v25.86：移除啟動鍵左側的資訊說明文字（跑燈訊息一律不顯示，事件紀錄仍保留在 log） */
 #msg.hi{color:var(--lamp)}
 .btn.off{opacity:.55;text-decoration:line-through}
 
@@ -486,6 +500,7 @@ body.lite #board .jpbeam,body.lite #board .jppool{mix-blend-mode:normal}
 #idle .hint{font-size:16px;font-weight:700}
 #idle .mini{font-size:16px;font-weight:700}
 #event .k,#event .d,#event .free{font-size:16px;font-weight:700}
+#event .k{font-size:28px;font-weight:900;letter-spacing:3px;color:#fff}   /* v25.93：事件標題（紫燈乘倍等）由 16 → 28px，單獨顯示時不再偏小 */
 #result th,#result td{font-size:16px;font-weight:700}
 #result .total{font-size:16px;font-weight:700}
 #jp .auto,#msg{font-size:16px;font-weight:700}
@@ -622,9 +637,16 @@ body.lite #board .jpbeam,body.lite #board .jppool{mix-blend-mode:normal}
 #result .rbox{flex-direction:row;align-items:center;justify-content:center;gap:26px;flex-wrap:nowrap}
 #result .total{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:0!important;padding:12px 22px;border-radius:16px;border:2px solid var(--lamp);background:linear-gradient(180deg,rgba(60,20,90,.75),rgba(20,8,40,.85));box-shadow:0 0 22px rgba(255,210,63,.35),inset 0 0 14px rgba(255,210,63,.15);min-width:170px}
 #result .total b{margin-left:0!important;font-size:44px;line-height:1.05}
+/* v25.83：總獎滾動歸 0 — 滾動中數字微縮、字距略收，歸 0 瞬間輕彈一下 */
+#result .total b.rolling{transform:scale(.94);letter-spacing:-1px;filter:brightness(1.2);transition:transform .15s}
+#result .total b.emptied{animation:totEmpty .4s ease-out}
+@keyframes totEmpty{0%{transform:scale(.9)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+.tier .tamt .amt.rolling{transform:scale(.94);filter:brightness(1.2)}
+.tier .tamt .amt.emptied{animation:totEmpty .4s ease-out}
 #result.dense th,#result.dense td{font-size:24px!important;padding:1px 10px;line-height:1.15}
 #result.dense .lnb{width:28px;height:28px}
 #result.noA .colA{display:none}
+#result.noM .colM{display:none}   /* v25.94 */
 
 .cell.bgimg .band{left:0;right:0;bottom:0}
 
@@ -751,14 +773,15 @@ body.lite .cell{transition:transform .12s;will-change:transform}
 #fateLayer .ftimer{position:absolute;width:92px;height:92px;margin:-46px 0 0 -46px;transition:opacity .3s}
 #fateLayer .ftimer.done{opacity:.35}
 #fateLayer .ftimer svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
-#fateLayer .ftimer .bgc{fill:#fff;stroke:rgba(0,0,0,.15);stroke-width:2}
+#fateLayer .ftimer .bgc{fill:#fff; /* v25.82：底板改回不透明（v25.81 30% 辨識差） */stroke:rgba(0,0,0,.15);stroke-width:2}
 /* v25.76：計時器色相 --h 隨時間由金橘(38°)漸變到紅(0°)；外圓弧與數字漸層同步 */
 #fateLayer .ftimer{--h:38}
 #fateLayer .ftimer .arc{fill:none;stroke:hsl(var(--h) 100% 52%);stroke-width:9;stroke-linecap:round}
 #fateLayer .ftimer b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,hsl(calc(var(--h) + 12) 100% 62%) 0%,hsl(var(--h) 100% 50%) 55%,hsl(calc(var(--h) - 6) 95% 36%) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
 #fateLayer .ftimer.hot b{animation:claim .5s ease-in-out infinite alternate}
 #fateLayer .fbubble{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%) scale(.6);opacity:0;display:flex;align-items:center;gap:14px;padding:10px 18px;border-radius:18px;background:rgba(255,255,255,.95);color:#3a2a06;font-size:24px;font-weight:900;box-shadow:0 8px 22px rgba(0,0,0,.45);transition:opacity .25s,transform .35s cubic-bezier(.2,1.1,.3,1)}
-#fateLayer .fbubble::after{content:"";position:absolute;left:50%;bottom:-14px;margin-left:-12px;border:12px solid transparent;border-top-color:rgba(255,255,255,.95);border-bottom:0}
+#fateLayer .fbubble::after{content:"";position:absolute;left:-14px;top:50%;margin-top:-12px;border:12px solid transparent;border-right-color:rgba(255,255,255,.95);border-left:0}   /* v26.3：尾巴朝左 */
+#fateLayer .fbubble.show~.ftimer,#fateLayer:has(.fbubble.show) .ftimer{opacity:0!important}   /* v26.3：對話框出現時隱藏同區的計時器 */
 #fateLayer .fbubble.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 #fateLayer .fbubble img{width:96px;height:96px;display:block}
 #fateLayer .stamp{position:absolute;left:50%;top:62%;z-index:5;pointer-events:none;transform:translate(-50%,-50%) rotate(-14deg) scale(3);opacity:0;padding:8px 30px;border:8px solid currentColor;border-radius:18px;font-size:86px;font-weight:900;letter-spacing:8px;line-height:1.1;text-align:center;color:#ff3b3b;text-shadow:0 0 2px rgba(255,255,255,.4);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);background:rgba(255,255,255,.06);animation:stampIn .38s cubic-bezier(.2,1.1,.3,1) forwards;-webkit-mask-image:radial-gradient(circle at 30% 40%,#000 55%,rgba(0,0,0,.75) 70%,#000 100%);mask-image:radial-gradient(circle at 30% 40%,#000 55%,rgba(0,0,0,.75) 70%,#000 100%)}
@@ -914,7 +937,7 @@ body.lite .cell{transition:transform .12s;will-change:transform}
         </div>
         <div class="scene" id="result">
           <div class="rbox">
-          <table><thead><tr><th>線</th><th>命中</th><th>面額／獎勵</th><th>倍率</th><th class="colA">加成</th><th>獎勵</th></tr></thead><tbody></tbody></table>
+          <table><thead><tr><th>線</th><th>命中</th><th>面額／獎勵</th><th class="colM">倍率</th><th class="colA">加成</th><th>獎勵</th></tr></thead><tbody></tbody></table>
           <div class="total"><span>本局總獎</span><b>0</b></div>
           </div>
         </div>
@@ -932,7 +955,7 @@ body.lite .cell{transition:transform .12s;will-change:transform}
     <p>紫燈：直式轉盤十選一（×1.5／2／2.5／3／3.5／4／4.5／5／6／10），累乘，上限 ×25。　紅燈：隨機 1～5 格升一級（面額 b→2b→3b→5b→10b）。</p>
     <p>藍燈：隨機關閉 1～5 個最小面額格，至少保留 1 格。　綠燈：直式轉盤十選一（+10%～+100%，每 10% 一檔），累加，上限 +300%。</p>
     <p>命中強化燈後免費再跑一次；該次重跑不會再停在任何特殊燈（含 JP），必定落在基本格結算。強化只在本局有效。</p>
-    <h5>雙線</h5><p>命中底部雙線燈後分成左右兩線，各自繼承目前強化並各自結算，最多兩份終局獎勵。兩線可停同一格且各自給獎。</p>
+    <h5>雙線</h5><p>命中底部雙線燈後分成左右兩線，各自繼承目前強化並各自結算，最多兩份終局獎勵。兩線不會停在同一格；三線亦同。</p>
     <h5>JP 點點樂</h5><p>命中 JP 進入 20 個寶箱（MINI 8／MINOR 6／MAJOR 3／GRAND 3）。點出 3 個相同彩金標籤即得該級彩金：MINI 200,000／MINOR 500,000／MAJOR 1,000,000／GRAND 3,000,000，不套用倍率與加成。30 秒未操作將提示並於 10 秒後自動開箱。</p>
     <h5>結算</h5><p>基本獎 = floor(面額 × 倍率 × (1 + 加成))。整局所有線完成後一次入帳。</p>
   </div></div>
@@ -1690,17 +1713,23 @@ function starTick(){
     if(S.stars>=CFG.MAX_STARS){ S.rem=0; } else { S.rem+=dt; if(S.rem>=CFG.ONLINE_SEC){ const n=Math.min(CFG.MAX_STARS-S.stars,Math.floor(S.rem/CFG.ONLINE_SEC)); S.stars+=n; S.rem=S.stars>=CFG.MAX_STARS?0:S.rem-n*CFG.ONLINE_SEC; Snd.star(); log(`收集電瓶 ×${n}`,true); updateStars(true); } }   /* v25.76：滿 5 枚時停止計時 */
   }
   const left=Math.max(0,CFG.ONLINE_SEC-S.rem); const mm=String(Math.floor(left/60)).padStart(2,'0'), ss=String(Math.floor(left%60)).padStart(2,'0');
-  const full=S.stars>=CFG.MAX_STARS; $('#cdText').textContent=full?'已滿':`${mm}:${ss}`; $('#cdRing .pg').style.strokeDashoffset=(full?0:100-S.rem/CFG.ONLINE_SEC*100).toFixed(2);
+  const full=S.stars>=CFG.MAX_STARS; $('#cdText').textContent=full?'已滿':`${mm}:${ss}`; if($('#stars').classList.contains('full')!==full){ $('#stars').classList.toggle('full',full); syncBreath(); }   /* v25.97／v25.98：已滿時綠框呼吸，且與啟動鍵同步 */ $('#cdRing .pg').style.strokeDashoffset=(full?0:100-S.rem/CFG.ONLINE_SEC*100).toFixed(2);
   if(S.state==='IDLE'&&S.stars===0) msg(`再在線 ${mm}:${ss} 即可收集電瓶`);
 }
 setInterval(starTick,250);
 /* v25.76：操作選單 — 重置 5 電瓶（執行後選單回到預設隨機） */
 $('#force').addEventListener('change',e=>{ if(e.target.value==='__reset'){ S.stars=CFG.MAX_STARS; S.rem=0; updateStars(true); log('重置電瓶 ×5',true); e.target.value=''; } });
+/* v25.98：讓啟動鍵與電瓶綠框的呼吸動畫從同一瞬間重新起跑（兩者皆 1s ease-in-out alternate，相位一致） */
+function syncBreath(){ const els=[$('#start'),$('#stars .ring .pg')].filter(Boolean); els.forEach(e=>{ e.style.animation='none'; }); void document.body.offsetWidth; els.forEach(e=>{ e.style.animation=''; }); }
 function updateStars(pop){ document.querySelectorAll('#batt .bt').forEach((el,i)=>{ const on=i<S.stars; if(pop&&on&&!el.classList.contains('on')){ el.classList.add('pop'); setTimeout(()=>el.classList.remove('pop'),600); } el.classList.toggle('on',on); }); const b=$('#start');
   if(S.state==='RESULT'||S.state==='CLAIMING'){ const z=!!(S.round&&S.round.quizFail&&(S.round.lines||[]).every(l=>!(l.result&&l.result.G>0))); /* 雙線時另一線有中獎則仍為領獎 */ b.textContent=z?'殘念':'領獎'; b.disabled=(S.state==='CLAIMING'); b.classList.add('claim'); b.classList.toggle('zannen',z); }   /* v24.5：答題未通關顯示殘念鍵 */
   else if(S.state==='CHANCE'){ b.textContent='啟動'; b.disabled=false; b.classList.remove('claim','zannen'); }
   else { b.textContent='啟動'; b.classList.remove('claim','zannen'); b.disabled = !(S.state==='IDLE' && S.stars>0); }
-  b.classList.toggle('img', b.textContent==='啟動'); }
+  b.classList.toggle('img', b.textContent==='啟動');
+  const canGo=(S.state==='IDLE'&&S.stars>0); if(b.classList.contains('breath')!==canGo){ b.classList.toggle('breath',canGo); syncBreath(); }   /* v25.98：啟動鍵呼吸 */
+  /* v25.96：電瓶不足時，啟動鍵上方顯示提示「電瓶不足，請補充」（逐字跳動），有電瓶或非待機狀態即隱藏 */
+  let nb=$('#noBatt'); if(!nb){ nb=document.createElement('div'); nb.id='noBatt'; nb.innerHTML=[...'電瓶不足，請補充'].map((ch,i)=>`<i style="animation-delay:${i*0.12}s">${ch}</i>`).join(''); $('#actions').appendChild(nb); }
+  nb.classList.toggle('show', S.state==='IDLE'&&S.stars<1); }
 
 /* ===================== 抽選（第 02／03 節） ===================== */
 function weightOf(line,p){
@@ -1722,8 +1751,9 @@ function weightOf(line,p){
 const openCells=line=>CELLS.filter(c=>c.type==='base'&&!line.closed[c.p]).map(c=>c.p);
 const upgradable=line=>openCells(line).filter(p=>line.lv[p]<CFG.ladder.length-1);
 /* v25.76：命運三線不可停在同一格 — 抽到與其他獎勵線（待處理停點／已終局／起點以外的當前位置）相同的格子就重抽 */
-function drawDistinct(line){ const round=S.round; let p=draw(line); if(!round||line.id[0]!=='F') return p;
-  const taken=new Set(); for(const o of round.lines){ if(o===line||o.id[0]!=='F') continue; if(o.pendingStop!=null) taken.add(o.pendingStop); if(o.result&&o.result.p!=null) taken.add(o.result.p); if(o.done===false&&o.pendingStop==null&&o.result==null&&o.pos!==line.pos) taken.add(o.pos); }
+/* v25.87：規則擴大 — 雙線（L／R）與三線（F1～F3）等多線同局時，任何兩條獎勵線都不可停在同一格（單線 S 不受限） */
+function drawDistinct(line){ const round=S.round; let p=draw(line); if(!round||line.id[0]==='S'||round.lines.length<2) return p;
+  const taken=new Set(); for(const o of round.lines){ if(o===line||o.id[0]==='S') continue; if(o.pendingStop!=null) taken.add(o.pendingStop); if(o.result&&o.result.p!=null) taken.add(o.result.p); if(o.done===false&&o.pendingStop==null&&o.result==null&&o.pos!==line.pos) taken.add(o.pos); }
   for(let t=0;t<40&&taken.has(p);t++) p=draw(line); return p; }
 function draw(line){
   const force=$('#force').value;
@@ -1776,9 +1806,11 @@ function ringLight(on, dur){
     // v25.11：效能 — 軌道用靜態 SVG（不每幀變動），光條 = NB 顆沿 offset-path 的小光點（頭大亮、尾小淡），只動 offset-distance
     const NB=24, D0=44;
     const blobs=c=>{ let h=''; for(let i=0;i<NB;i++){ const f=i/(NB-1); const dd=Math.round(D0*(1-0.6*f)), op=(0.95*(1-f)*(1-f)+0.06).toFixed(2); h+=`<i class="blob${i<7?' core':''}" style="--d:${dd}px;--o:${op};offset-path:path('${d}')"></i>`; } return `<span class="${c}">${h}</span>`; };
-    R.innerHTML=`<svg viewBox="0 0 ${bw} ${bh}"><path class="rg-track" d="${d}"/></svg>${blobs('setA')}${blobs('setB')}${blobs('setC')}`;
+    /* v26.2：效能 — 72 顆 offset-path 光點只在盤面尺寸改變時重建（原本每次跑燈都重建整組 DOM＋重新排版，造成啟動瞬間掉幀） */
+    const key=`${bw}x${bh}x${X0}x${Y0}`; if(R.dataset.key!==key){ R.innerHTML=`<svg viewBox="0 0 ${bw} ${bh}"><path class="rg-track" d="${d}"/></svg>${blobs('setA')}${blobs('setB')}${blobs('setC')}`; R.dataset.key=key; R.dataset.total=R.querySelector('.rg-track').getTotalLength(); }
+    else { R.querySelectorAll('.blob').forEach(e=>{ e.style.offsetDistance='0px'; }); }
     // v21.5：兩組光條 — 單線時只用 A；雙線時 A 追左線（藍）、B 追右線（橘）
-    const total=R.querySelector('.rg-track').getTotalLength(), LG=total*0.11, gap=LG/NB;
+    const total=+R.dataset.total, LG=total*0.11, gap=LG/NB;
     const sets=['.setA','.setB','.setC'].map(q=>({ els:[...R.querySelectorAll(q+' .blob')], s:null, last:null, dir:1 }));
     // v25.11：效能 — 格心座標在啟動時快取一次（offset 座標相對 #board，不受 transform 影響），迴圈內不再每幀 getBoundingClientRect 觸發強制排版
     const CC=cellCenters();
@@ -1788,9 +1820,10 @@ function ringLight(on, dur){
     const project=(x,y)=>{ x=Math.max(0,Math.min(RW,x-X0)); y=Math.max(0,Math.min(RH,y-Y0)); const dT=y, dR=RW-x, dB=RH-y, dL=x; const m=Math.min(dT,dR,dB,dL);
       if(m===dT) return x; if(m===dR) return RW+y; if(m===dB) return RW+RH+(RW-x); return 2*RW+RH+(RH-y); };
     const P=2*(RW+RH), k=total/P;   // 直邊周長 → 路徑長度比例（含圓角誤差，視覺可忽略）
-    const track=(st,p)=>{ const c=p!=null?CC[p]:null; if(!c) return;
+    const track=(st,p,exp=1)=>{ const c=p!=null?CC[p]:null; if(!c) return;
       const target=((project(c[0],c[1])-rr)*k+total)%total;   // 路徑起點在左上圓角之後，需扣回 rr
-      if(st.s==null) st.s=target; else { let dlt=target-st.s; if(dlt>total/2) dlt-=total; if(dlt<-total/2) dlt+=total; if(Math.abs(dlt)>0.5) st.dir=dlt>0?1:-1; st.s=(st.s+dlt*0.22+total)%total; }
+      /* v26.1：光條只沿該線的行進方向追燈（順時針線永不倒退；右線為逆時針），不再取最短路徑 */
+      if(st.s==null) st.s=target; else { let dlt=target-st.s; if(dlt>total/2) dlt-=total; if(dlt<-total/2) dlt+=total; if(exp>0&&dlt<-0.5) dlt+=total; if(exp<0&&dlt>0.5) dlt-=total; if(Math.abs(dlt)>0.5) st.dir=dlt>0?1:-1; st.s=(st.s+dlt*0.22+total)%total; }
       if(st.last!=null && Math.abs(st.s-st.last)<0.05) return; st.last=st.s;
       const dir=st.dir||1;   /* v25.76：彗尾依實際行進方向拖在後方（右線逆時針時尾巴也要在後面，頭大尾小） */
       for(let i=0;i<NB;i++){ st.els[i].style.offsetDistance=(((st.s-dir*i*gap)%total+total)%total).toFixed(1)+'px'; } };
@@ -1799,7 +1832,7 @@ function ringLight(on, dur){
       const [a,b,dual]=spotTargets();
       R.classList.toggle('triple',triple); R.classList.toggle('dual',dual&&!triple);
       if(triple){ F.forEach((p,i)=>{ if(p!=null) track(sets[i],p); }); }
-      else { track(sets[0],a); if(dual) track(sets[1],b); }
+      else { track(sets[0],a,1); if(dual) track(sets[1],b,-1); }
       SPOT.raf=requestAnimationFrame(loop);
     };
     loop();
@@ -1846,14 +1879,22 @@ function spotlights(on, dur){
     loop();
   } else if(L){ cancelAnimationFrame(BEAM.raf); L.classList.remove('on'); setTimeout(()=>{ if(L && !L.classList.contains('on')) L.remove(); },700); }
 }
+/* v26.0：跑燈三段機械式速度曲線（格/秒）
+   第一段 起速（0～30%）：由 v0（≈慢速逐格）以二次曲線逐步加速到中速 vMid
+   第二段 中速（30～55%）：由 vMid 以正弦緩出繼續加速，於段末達到最高速 vPeak
+   第三段 尾速（55～100%）：由 vPeak 以二次衰減平滑減速到 vEnd，接近停止（各段銜接點速度連續，無突變） */
+function speedProfile(dur,vPeak,vMid,vEnd){ const P1=dur*0.30, P2=dur*0.25, P3=dur-P1-P2, v0=Math.max(vEnd,5);   /* v26.2：起速由 1.2 → 5 格/秒（首步約 0.2s），過慢的逐格起步會被看成卡頓 */
+  return t=>{ if(t<=0) return v0; if(t<P1){ const u=t/P1; return v0+(vMid-v0)*u*u; }
+    if(t<P1+P2){ const u=(t-P1)/P2; return vMid+(vPeak-vMid)*Math.sin(u*Math.PI/2); }
+    const u=Math.min(1,(t-P1-P2)/P3); return vEnd+(vPeak-vEnd)*(1-u)*(1-u); }; }
 function runLamps(runs, dur){
   const flow=S.flow;
+  SPOT.lit=((runs[0].from+runs[0].dir)%N+N)%N; SPOT.lits={};   /* v26.1：光條／投射燈起點設為本次跑燈的第一格（原本殘留上一局的停點，導致光條先逆時針滑回再順時針追燈） */
   if(FX_ON){ ringLight(true, dur); spotlights(true, dur); }   // v20.4：繞框光條 + 追燈投射燈並用（v25.12：?fx=0 可整組關閉以排查卡頓來源）
   fpsMeter(true);
-  // 三階段絕對速度（格/秒）：極快 40%時間 → 中速 20% → 尾速 40% 持續遞減到近乎逐格；首跑 5 秒即 2s／1s／2s
-  const P1=dur*0.4, P2=dur*0.2, ramp=Math.min(120,dur*0.03);
-  const V_FAST=CFG.v.fast, V_MID=CFG.v.mid, V_END=CFG.v.end;
-  const speedAbs=t=>{ if(t<ramp) return V_FAST*(t/ramp); if(t<P1) return V_FAST; if(t<P1+P2) return V_MID; const u=Math.min(1,(t-P1-P2)/(dur-P1-P2)); return V_END+(V_MID-V_END)*(1-u)*(1-u); };
+  // v26.0：三段機械式速度曲線（格/秒）— 起速 30%：由慢逐步加速（二次曲線）→ 中速 25%：加速升至最高速（正弦緩出）→ 尾速 45%：由最高速平滑減速至停止（二次衰減）
+  const V_FAST=CFG.v.fast;
+  const speedAbs=speedProfile(dur,CFG.v.fast,CFG.v.mid,CFG.v.end);
   const SAMP=800, tbl=[0]; for(let i=1;i<=SAMP;i++){ const t=(i/SAMP)*dur; tbl.push(tbl[i-1]+speedAbs(t-dur/SAMP/2)*(dur/SAMP)/1000); }   // ms → 秒
   const need=tbl[SAMP];                                   // 依速度曲線應走的步數
   // 假停：50% 先停在終點前 1 格、0.4 秒後跳 1 格；25% 先停前 2 格、0.1 秒後逐格跳 2 格；25% 直接停在終點（假停避開關閉格）
@@ -1890,13 +1931,24 @@ function wait(ms){ const flow=S.flow; return new Promise(r=>{ const t0=performan
 
 /* ===================== 一局流程（第 07 節狀態機，客端模擬伺服器） ===================== */
 function newLine(id,pos,dir){ return {id,pos,dir,M:1,A:0,lv:Array(N).fill(0),add:Array(N).fill(0),upg:Array(N).fill(false),closed:Array(N).fill(false),chain:0,chainEnd:false,noSpecial:false,noBlue:false,chanceUsed:false,fateUsed:false,split:false,done:false,result:null}; }
+/* v25.83：領獎時本局總獎快速倒滾至 0 — 約 1.1s、先快後慢的減速曲線，末段每幀遞減保證不會停在非 0 值 */
+function rollTotalDown(total,flow){ const el=$('#result .total b'); if(!(total>0)) return;
+  /* v25.84：中 JP 時，中獎彩金框內的金色數字同步倒滾歸 0（單線 JP 無總獎框時亦適用） */
+  const jt=document.querySelector('.tier.win'), jam=jt?jt.querySelector('.tamt>span'):null; const jn=['MINI','MINOR','MAJOR','GRAND'].find(k=>jt&&jt.classList.contains(k)); const jTotal=jn?CFG.jpAmount[jn]:0;
+  if(!el&&!jam) return; if(el) el.classList.add('rolling'); if(jam) jam.classList.add('rolling'); const T=1100, t0=performance.now();
+  (function step(now){ if(S.flow!==flow) { if(el) el.classList.remove('rolling'); if(jam) jam.classList.remove('rolling'); return; } let k=Math.min(1,(now-t0)/T); const e=1-Math.pow(1-k,3);  // ease-out：起步瘋狂掉數，收尾放慢
+    if(el){ const v=Math.max(0,Math.round(total*(1-e))); el.textContent=fmt(v); }
+    if(jam){ const jv=Math.max(0,Math.round(jTotal*(1-e))); renderAmount(jam,jv); }
+    if(k<1) requestAnimationFrame(step); else { if(el){ el.textContent='0'; el.classList.remove('rolling'); el.classList.add('emptied'); setTimeout(()=>el.classList.remove('emptied'),400); } if(jam){ renderAmount(jam,0); jam.classList.remove('rolling'); jam.classList.add('emptied'); setTimeout(()=>jam.classList.remove('emptied'),400); } } })(t0); }
 function cloneLine(src,id,pos,dir){ const l={...src,id,pos,dir,lv:[...src.lv],add:[...src.add],upg:[...src.upg],closed:[...src.closed],split:true,done:false,result:null}; return l; }
 
 $('#start').addEventListener('click',()=>{ if(S.state==='RESULT'){ Snd.click(); const won=!!(S.round&&(S.round.lines||[]).some(l=>l.result&&l.result.G>0));
     if(!won){ toIdle(); return; }
     /* v25.6：領獎節奏 — 遮罩保留、立即噴彩帶（結算框保留）→ 彩帶演完切回 LOGO 主場景，遮罩此時才關閉 */
     S.state='CLAIMING'; const b=$('#start'); b.disabled=true; const f=S.flow;
+    rollTotalDown(S.round.total, f);   /* v25.83：本局總獎數字快速滾動歸 0（金幣領走） */
     celebrate();
+    coinFountain(2000, !!(S.round.lines||[]).some(l=>l.result&&l.result.kind==='jp'));   /* v25.90：JP 中獎維持全高噴泉，其他獎高度約畫面 1/3 */
     setTimeout(()=>{ if(S.flow!==f) return; b.disabled=false; toIdle(); }, 3000+150); } else if(S.state==='CHANCE'){ Snd.click(); if(chanceResolve) chanceResolve(); } else startRound(); });
 $('#skip').addEventListener('click',()=>{ skipReq=true; Snd.click(); });
 $('#rulesBtn').addEventListener('click',()=>{ Snd.click(); $('#rules').classList.add('show'); });
@@ -1906,7 +1958,7 @@ $('#sndBtn').addEventListener('click',()=>{ const on=Snd.toggle(); $('#sndBtn').
 async function startRound(){
   if(S.state!=='IDLE'||S.stars<1) return;
   Snd.click(); S.state='STARTING'; $('#start').disabled=true; msg('啟動中…');
-  await sleep(250);                                    // 模擬伺服器原子扣星建局
+  await sleep(80);                                     // 模擬伺服器原子扣星建局（v26.2：250 → 80ms，縮短按下到起跑的停頓）
   S.stars--; updateStars(); S.flow++; const fromPos=idlePos; stopIdle();
   const round={id:'R'+Date.now().toString(36),lines:[newLine('S',(fromPos-1+N)%N,+1)],cur:null,settled:false,total:0,first:true};   // 由按下前亮著的那一格開始踩
   S.round=round; S.state='RUNNING'; $('#skip').classList.add('show'); log(`新局 ${round.id}，扣 1 星`,true);
@@ -1973,7 +2025,7 @@ async function runLine(line, first, resumed=false){
       const L=cloneLine(line,'L',15,+1), R=cloneLine(line,'R',15,-1);
       line.done=true; line.result={kind:'split'}; round.lines=[...round.lines.filter(l=>l!==line),line,L,R];   /* v25.76：保留尚未進行的其他線 */
       renderLines();
-      const sL=draw(L), sR=draw(R);
+      const sL=draw(L); let sR=draw(R); for(let t=0;t<40&&sR===sL;t++) sR=draw(R);   /* v25.87：雙線初跑停點不可相同 */
       scene('running'); msg('雙線同步跑燈',true);
       await runLamps([{from:15,to:sL,dir:+1,cls:'onL'},{from:15,to:sR,dir:-1,cls:'onR'}],CFG.t.again);
       L.pendingStop=sL; R.pendingStop=sR;
@@ -1990,7 +2042,9 @@ const FICON={F1:'scissors',F2:'rock',F3:'paper'};   /* v25.76：命運三線角�
 const lineName=l=>l.id[0]==='F'?`第${l.id[1]}線`:({S:'單線',L:'左線',R:'右線'})[l.id];
 const lineCls=l=>l.id==='S'?'on':'on'+l.id, lineFin=l=>'f'+l.id;   /* v25.76：L／R／F1～F3 各有自己的燈色與終局閃爍 */
 
-function showEvent(cls,k,h,d,free){ scene('event'); const e=$('#event'); e.className='scene show '+cls; e.querySelector('.k').textContent=k; e.querySelector('.h').textContent=h; e.querySelector('.d').textContent=d; e.querySelector('.free').textContent=free; }
+/* v25.92：獎格資訊說明精簡 — 只保留標題（如「紫燈乘倍」）與結果值（如「×2.5」）；細節說明與「免費再跑一次」一律不顯示；
+   轉盤進行中只顯示標題（不顯示「轉盤中」） */
+function showEvent(cls,k,h,d,free){ scene('event'); const e=$('#event'); e.className='scene show '+cls; e.querySelector('.k').textContent=k; e.querySelector('.h').textContent=(h==='轉盤中')?'':h; e.querySelector('.d').textContent=''; e.querySelector('.free').textContent=''; }
 
 async function applySpecial(line,type){
   const K=1+rnd(5);
@@ -2002,7 +2056,7 @@ async function applySpecial(line,type){
   else if(type==='red'){
     // v23.1：升級改為雙盤 — A 盤決定類型、B 盤決定格數（指定排不轉 B）；被選格蓋上紅格圖後數字滾動至新面額
     const A_ITEMS=['隨機','小額','大額','上排','右排','下排','左排'];
-    const B_OPT=A=>({p:10,kind:'red',title:'升級・格數',items:[3,4,5,6,7,8,9,10],label:v=>`${v}格`,before:A,after:v=>`${A} ${v} 格`});
+    const B_OPT=A=>({p:10,kind:'red',title:'升級・格數',items:[4,5,6,7,8,9,10],   /* v25.95：升級格數移除 3 格，最小 4 格 */label:v=>`${v}格`,before:A,after:v=>`${A} ${v} 格`});
     const rs=await lampReel(line,{p:10,kind:'red',title:'升級・類型',items:A_ITEMS,label:v=>v,before:'升級類型',after:v=>v,reset:true,multi:true,
       next:v=>(v==='隨機'||v==='小額'||v==='大額')?B_OPT(v):null}); if(rs==null) return;
     const A=rs[0], k=rs.length>1?parseInt(rs[1],10):0;
@@ -2141,7 +2195,7 @@ async function fateGame(line){
     <div class="fhint" style="left:${mx(982)}px;top:${my(472)-10}px">   <!-- v25.79：出拳提示膠囊再上移 6px -->${[...'點擊卡片出拳'].map((ch,i)=>`<i style="animation-delay:${i*0.12}s">${ch}</i>`).join('')}</div>
     ${dots.map(d=>`<button class="fdot" data-id="${d.id}" style="left:${mx(d.x)}px;top:${my(d.y)}px" aria-label="${d.id}"></button>`).join('')}
     <div class="ftimer" style="left:${mx(1267)}px;top:${my(237)}px"><svg viewBox="0 0 100 100"><circle class="bgc" cx="50" cy="50" r="44"/><circle class="arc" cx="50" cy="50" r="44"/></svg><b>10</b></div>
-    <div class="fbubble"><span>荷官出拳</span><img alt=""></div>`;
+    <div class="fbubble" style="left:${mx(1406)}px;top:${my(232)}px"><span>荷官出拳</span><img alt=""></div>`;   /* v26.3：對話框移到荷官右側空位（不擋臉），尾巴朝左指向荷官 */
   await sleep(20); layer.classList.add('show'); Snd.tag(); await wait(600); if(S.flow!==flow){ layer.remove(); $('#start').style.visibility=''; return null; }
   /* 倒數 10 秒，白點閃爍提示 */
   const fdots=[...layer.querySelectorAll('.fdot')], arc=layer.querySelector('.ftimer .arc'), num=layer.querySelector('.ftimer b'), tm=layer.querySelector('.ftimer');
@@ -2169,57 +2223,87 @@ async function fateGame(line){
 }
 const CHANCE_SLOT={25:[0,0],0:[0,1],5:[0,2],20:[1,0],15:[1,1],10:[1,2]};
 // v23.3：趣味答題題庫（ans 為正確選項索引）
-const CHANCE_QUIZ=[   // v23.5：周星馳經典電影 50 題（每次隨機抽 1 題）
-  {"q": "《唐伯虎點秋香》中，唐伯虎在華府的下人編號是？", "opts": ["0857", "9487", "1997", "9527"], "ans": 3},
-  {"q": "《唐伯虎點秋香》中，唐伯虎在華府當書僮時，使用什麼名字？", "opts": ["華文", "華安", "華武", "華強"], "ans": 1},
-  {"q": "《唐伯虎點秋香》中，唐伯虎哭喊的「小強」是什麼動物？", "opts": ["蟑螂", "老鼠", "麻雀", "螞蟻"], "ans": 0},
-  {"q": "《唐伯虎點秋香》中，與唐伯虎比慘的人，他的小狗叫什麼名字？", "opts": ["來福", "招財", "旺財", "阿福"], "ans": 2},
-  {"q": "《唐伯虎點秋香》中，與唐伯虎對聯對到吐血的人是誰？", "opts": ["奪命書生", "對穿腸", "祝枝山", "華太師"], "ans": 1},
-  {"q": "《唐伯虎點秋香》中，唐伯虎聲稱吃下後不能笑、也不能走半步的毒藥叫什麼？", "opts": ["一日喪命散", "七步斷腸散", "十香軟筋散", "含笑半步癲"], "ans": 3},
-  {"q": "《唐伯虎點秋香》中，唐伯虎用哪一招替秋香恢復容貌？", "opts": ["還我漂漂拳", "面目全非腳", "含情脈脈掌", "情意綿綿刀"], "ans": 0},
-  {"q": "《唐伯虎點秋香》中，自稱「風華絕代、萬人驚艷」的華府女子是誰？", "opts": ["春香", "夏香", "石榴姐", "冬香"], "ans": 2},
-  {"q": "《功夫》中，住戶洗頭洗到一半沒水時，大聲呼喊的是誰？", "opts": ["包租公", "苦力強", "琛哥", "包租婆"], "ans": 3},
-  {"q": "《功夫》中，阿星與同伴到豬籠城寨鬧事時，冒充哪個幫派的成員？", "opts": ["斧頭幫", "鱷魚幫", "青龍幫", "金錢幫"], "ans": 0},
-  {"q": "《功夫》中，包租婆用吼聲震懾敵人的絕技是？", "opts": ["鐵頭功", "蛤蟆功", "獅吼功", "金鐘罩"], "ans": 2},
-  {"q": "《功夫》中，火雲邪神趴在地上、鼓氣後彈射攻擊的武功是？", "opts": ["螳螂拳", "蛤蟆功", "蛇形刁手", "鷹爪功"], "ans": 1},
-  {"q": "《功夫》中，阿星最後使出的從天而降的掌法是？", "opts": ["如來神掌", "降龍十八掌", "天山六陽掌", "大力金剛掌"], "ans": 0},
-  {"q": "《功夫》中，連結阿星與啞女童年回憶的糖果是？", "opts": ["牛奶糖", "跳跳糖", "棉花糖", "棒棒糖"], "ans": 3},
+const CHANCE_QUIZ=[   // v25.85：周星馳經典電影 80 題加難版（使用者提供 txt；每次隨機抽 1 題）
+  {"q": "《唐伯虎點秋香》中，唐伯虎在華府的下人編號是？", "opts": ["9572", "9257", "9275", "9527"], "ans": 3},
+  {"q": "《唐伯虎點秋香》中，唐伯虎在華府當書僮時，使用什麼名字？", "opts": ["華仁", "華安", "華文", "華武"], "ans": 1},
+  {"q": "《唐伯虎點秋香》中，「小強」是被誰踩死的？", "opts": ["石榴姐", "秋香", "華夫人", "唐伯虎"], "ans": 0},
+  {"q": "《唐伯虎點秋香》中，與唐伯虎比慘的人，他的小狗叫什麼名字？", "opts": ["來福", "旺福", "旺財", "來財"], "ans": 2},
+  {"q": "《唐伯虎點秋香》中，對穿腸自我介紹時，聲稱自己是幾省文狀元？", "opts": ["六省", "七省", "八省", "九省"], "ans": 1},
+  {"q": "《唐伯虎點秋香》中，華夫人與唐伯虎互相吹噓毒藥威力，華夫人的毒藥叫什麼？", "opts": ["含笑半步癲", "十香軟筋散", "七步斷腸散", "一日喪命散"], "ans": 3},
+  {"q": "《唐伯虎點秋香》中，唐伯虎替秋香恢復容貌，使用的招式叫什麼？", "opts": ["還我漂漂拳", "還我漂漂掌", "面目全非拳", "面目全非腳"], "ans": 0},
+  {"q": "《唐伯虎點秋香》中，唐伯虎曾把誰的身體當成作畫工具，用來抵償賭債？", "opts": ["文徵明", "徐禎卿", "祝枝山", "華太師"], "ans": 2},
+  {"q": "《功夫》中，包租婆宣布每星期哪幾天停水？", "opts": ["星期一、二、三", "星期二、四、六", "星期五、六、日", "星期一、三、五"], "ans": 3},
+  {"q": "《功夫》開場，在警局大鬧、隨後遭斧頭幫消滅的是哪個幫派？", "opts": ["鱷魚幫", "青龍幫", "白虎幫", "金錢幫"], "ans": 0},
+  {"q": "《功夫》中，包租婆對戰火雲邪神時，用什麼物品放大獅吼功的威力？", "opts": ["大鼓", "銅鑼", "大鐘", "大缸"], "ans": 2},
+  {"q": "《功夫》中，火雲邪神拿槍朝自己開火時，是怎麼擋住子彈的？", "opts": ["用手掌接住", "用兩根手指夾住", "用牙齒咬住", "用額頭彈開"], "ans": 1},
+  {"q": "《功夫》中，乞丐把武功秘笈賣給童年的阿星，收了多少錢？", "opts": ["10 元", "5 元", "20 元", "50 元"], "ans": 0},
+  {"q": "《功夫》中，阿星長大後再次遇見啞女時，她推著攤車賣什麼？", "opts": ["棒棒糖", "糖葫蘆", "棉花糖", "冰淇淋"], "ans": 3},
   {"q": "《功夫》中，包租公被親後，驚呼哪位女子「妳來真的」？", "opts": ["阿梅", "阿珍", "阿麗", "阿芳"], "ans": 1},
-  {"q": "《食神》中，主角在決賽最後以叉燒飯加荷包蛋做出的料理，叫什麼名字？", "opts": ["黃金蛋炒飯", "至尊叉燒飯", "黯然銷魂飯", "無敵海景飯"], "ans": 2},
-  {"q": "《食神》中，「撒尿牛丸」結合牛肉丸與哪一種海鮮？", "opts": ["撒尿蝦", "花枝", "牡蠣", "海參"], "ans": 0},
-  {"q": "《食神》中，為了展示撒尿牛丸的彈性，主角還拿它來玩哪一種運動？", "opts": ["網球", "桌球", "棒球", "高爾夫"], "ans": 1},
-  {"q": "《食神》中，被誇為武器之首、平常也能拿來坐的物品是？", "opts": ["太師椅", "長板凳", "搖椅", "摺凳"], "ans": 3},
-  {"q": "《食神》中，揭穿主角廚藝不足、奪走食神稱號的對手是誰？", "opts": ["鵝頭", "夢遺大師", "唐牛", "戴龍"], "ans": 2},
-  {"q": "《食神》中，劉以達飾演、神出鬼沒的少林寺方丈，法號是？", "opts": ["達摩大師", "夢遺大師", "掃地神僧", "法海禪師"], "ans": 1},
-  {"q": "《九品芝麻官》中，周星馳飾演的縣官叫什麼名字？", "opts": ["包龍星", "包有為", "包不同", "包青天"], "ans": 0},
-  {"q": "《九品芝麻官》的經典證詞中，打更人看見常威正在打誰？", "opts": ["旺財", "阿福", "來福", "有財"], "ans": 2},
+  {"q": "《食神》中，評審吃黯然銷魂飯時流淚，主角說自己加了什麼？", "opts": ["芥末", "辣椒", "洋蔥", "胡椒"], "ans": 2},
+  {"q": "《食神》中，「撒尿牛丸」結合牛肉丸與哪一種海鮮？", "opts": ["撒尿蝦", "明蝦", "龍蝦", "白蝦"], "ans": 0},
+  {"q": "《食神》中，主角為了展示撒尿牛丸的彈性，拿它來玩哪一種運動？", "opts": ["網球", "桌球", "壁球", "高爾夫"], "ans": 1},
+  {"q": "《食神》中，主角介紹居家旅行、打架防身的好幫手時，說的是哪一種座椅？", "opts": ["板凳", "長椅", "太師椅", "摺凳"], "ans": 3},
+  {"q": "《食神》中，唐牛自稱是中國廚藝訓練學院第幾屆畢業生？", "opts": ["第 103 屆", "第 104 屆", "第 105 屆", "第 106 屆"], "ans": 2},
+  {"q": "《食神》中，神出鬼沒的少林寺方丈，法號是什麼？", "opts": ["佛印大師", "夢遺大師", "達摩大師", "法海禪師"], "ans": 1},
+  {"q": "《九品芝麻官》中，擔任師爺的包有為，是包龍星的什麼親屬？", "opts": ["侄子", "叔叔", "堂兄", "舅舅"], "ans": 0},
+  {"q": "《九品芝麻官》中，聲稱看見常威打來福的證人，從事什麼工作？", "opts": ["看門人", "店小二", "打更人", "轎夫"], "ans": 2},
   {"q": "《九品芝麻官》中，在公堂上反覆跳進跳出、挑釁別人打他的狀師是誰？", "opts": ["宋世傑", "陳夢吉", "荒唐鏡", "方唐鏡"], "ans": 3},
-  {"q": "《九品芝麻官》中，握拳說出「我全都要」的是誰？", "opts": ["包龍星", "豹子頭雷豹", "常威", "包有為"], "ans": 1},
-  {"q": "《九品芝麻官》中，常威否認自己會武功，如何解釋自己的力氣？", "opts": ["自幼務農", "天天練拳", "天生神力", "吃了神藥"], "ans": 2},
-  {"q": "《破壞之王》中，說出「在座的各位都是垃圾」的是誰？", "opts": ["斷水流大師兄", "黑熊", "鬼王達", "何金銀"], "ans": 0},
-  {"q": "《破壞之王》中，何金銀拜誰為師，學習中國古拳法？", "opts": ["火雲邪神", "斷水流大師兄", "夢遺大師", "鬼王達"], "ans": 3},
-  {"q": "《破壞之王》中，何金銀抱住對手、一起高速翻滾的招式叫什麼？", "opts": ["霹靂旋風腿", "奪命剪刀腳", "無敵風火輪", "乾坤大挪移"], "ans": 2},
-  {"q": "《破壞之王》中，何金銀英雄救美時，戴著哪個卡通角色的面具？", "opts": ["哆啦A夢", "加菲貓", "米老鼠", "唐老鴨"], "ans": 1},
-  {"q": "《少林足球》中，阿星把沒有夢想的人，比喻成什麼？", "opts": ["木頭", "石頭", "烏龜", "鹹魚"], "ans": 3},
-  {"q": "《少林足球》中，阿星認為地球很危險，叫阿梅快回去哪個星球？", "opts": ["火星", "金星", "水星", "土星"], "ans": 0},
-  {"q": "《少林足球》中，阿梅揉麵做饅頭時，運用的是哪種武功？", "opts": ["詠春拳", "太極拳", "醉拳", "洪拳"], "ans": 1},
-  {"q": "《少林足球》中，少林隊在決賽遇到、由強雄帶領的對手是哪一隊？", "opts": ["旋風隊", "雷霆隊", "魔鬼隊", "霸王隊"], "ans": 2},
-  {"q": "《凌凌漆大戰金鎗客》中，主角最具代表性的近身武器是？", "opts": ["殺豬刀", "武士刀", "雙截棍", "西洋劍"], "ans": 0},
-  {"q": "《凌凌漆大戰金鎗客》中，太陽能手電筒在沒光時，怎樣才能亮？", "opts": ["用力搖晃手電筒", "對著燈泡大聲呼喊", "放進冰箱冷卻一下", "用另一支手電筒照它"], "ans": 3},
-  {"q": "《凌凌漆大戰金鎗客》中，達聞西把多種武器綁在一起的發明叫什麼？", "opts": ["送你走八千", "要你命三千", "取你命五千", "打到你升天"], "ans": 1},
-  {"q": "《鹿鼎大帝》中，保龍一族四位密探的名字最後一字，能組成哪句吉祥話？", "opts": ["恭喜發財", "招財進寶", "吉祥如意", "四季平安"], "ans": 0},
-  {"q": "《鹿鼎大帝》中，妻子與阿發吵架後，常提議做什麼給他吃？", "opts": ["煮一鍋粥", "炒一盤飯", "煮一碗麵", "包一籠餃子"], "ans": 2},
-  {"q": "《喜劇之王》中，周星馳飾演、堅持自己是演員的主角叫什麼名字？", "opts": ["何金銀", "周星星", "史提芬周", "尹天仇"], "ans": 3},
-  {"q": "《喜劇之王》中，主角說出「我養妳啊」的對象是誰？", "opts": ["柳飄飄", "杜娟兒", "阿梅", "李香琴"], "ans": 0},
-  {"q": "《喜劇之王》中，主角經常研讀哪一本書來鑽研演技？", "opts": ["導演的藝術", "演員的自我修養", "電影表演技巧", "明星養成手冊"], "ans": 1},
-  {"q": "《齊天大聖東遊記》中，至尊寶用來穿越時空、救回白晶晶的寶物是？", "opts": ["紫金葫蘆", "乾坤寶鏡", "玲瓏寶塔", "月光寶盒"], "ans": 3},
-  {"q": "《齊天大聖西遊記》中，紫霞認定意中人的條件是對方能做到什麼？", "opts": ["打敗牛魔王", "找到月光寶盒", "拔出她的紫青寶劍", "解開她的紫金鈴"], "ans": 2},
-  {"q": "《齊天大聖西遊記》中，至尊寶希望替愛情加上的期限是多久？", "opts": ["一百年", "一萬年", "一千年", "一億年"], "ans": 1},
-  {"q": "《賭聖》中，周星馳飾演、從中國大陸到香港投靠三叔的青年叫什麼名字？", "opts": ["左頌星", "周星祖", "周星星", "陳小刀"], "ans": 0},
-  {"q": "《賭聖》中，三叔發現主角擁有哪種特殊本領，因此想帶他到賭場賺錢？", "opts": ["百發百中", "過目不忘", "特異功能", "模仿聲音"], "ans": 2},
-  {"q": "《逃學威龍》中，周星馳飾演、奉命進入校園臥底的警察叫什麼名字？", "opts": ["左頌星", "周星星", "周星祖", "陳小刀"], "ans": 1},
-  {"q": "《逃學威龍》中，主角假扮學生進入校園，主要是為了找回上司遺失的什麼？", "opts": ["配槍", "警員證", "機密文件", "警用無線電"], "ans": 0},
-  {"q": "《武狀元蘇乞兒》中，蘇燦最後用哪套掌法對抗大反派？", "opts": ["如來神掌", "黯然銷魂掌", "天山六陽掌", "降龍十八掌"], "ans": 3}
+  {"q": "《九品芝麻官》中，握拳說出「我全都要」的是誰？", "opts": ["包龍星", "雷豹", "常威", "李公公"], "ans": 1},
+  {"q": "《九品芝麻官》中，誰帶來黃馬褂替常威撐腰？", "opts": ["常昆", "陳知縣", "李公公", "花尚書"], "ans": 2},
+  {"q": "《破壞之王》中，說出「在座的各位都是垃圾」的斷水流大師兄，屬於哪個武術部門？", "opts": ["空手道", "跆拳道", "柔道", "合氣道"], "ans": 0},
+  {"q": "《破壞之王》中，何金銀拜誰為師，學習中國古拳法？", "opts": ["黑熊", "斷水流大師兄", "陳主任", "鬼王達"], "ans": 3},
+  {"q": "《破壞之王》中，何金銀抱住對手一起高速翻滾的招式叫什麼？", "opts": ["霹靂風火輪", "無敵旋風腿", "無敵風火輪", "奪命剪刀腳"], "ans": 2},
+  {"q": "《破壞之王》中，何金銀英雄救美時，戴的是哪個卡通角色的面具？", "opts": ["哆啦 A 夢", "加菲貓", "湯姆貓", "黑貓警長"], "ans": 1},
+  {"q": "《少林足球》中，阿星談到「做人如果沒夢想」時，台詞拿人與什麼比較？", "opts": ["死魚", "臭魚", "魚乾", "鹹魚"], "ans": 3},
+  {"q": "《少林足球》中，阿梅第一次上場當守門員時，誤站到哪裡？", "opts": ["對方球門前", "球場中圈", "邊線外", "替補席旁"], "ans": 0},
+  {"q": "《少林足球》中，阿梅揉麵做饅頭時，運用的是哪種武功？", "opts": ["詠春拳", "太極拳", "形意拳", "洪拳"], "ans": 1},
+  {"q": "《少林足球》中，明鋒年輕時在球壇的綽號是什麼？", "opts": ["黃金左腳", "黃金雙腳", "黃金右腳", "黃金鐵腿"], "ans": 2},
+  {"q": "《凌凌漆大戰金鎗客》中，主角怎麼稱呼自己那把招牌武器？", "opts": ["殺豬刀", "屠牛刀", "剔骨刀", "斬骨刀"], "ans": 0},
+  {"q": "《凌凌漆大戰金鎗客》中，達聞西的太陽能手電筒在黑暗中，要怎麼才能亮？", "opts": ["先在白天充飽電", "裝上備用電池", "轉動把手來發電", "用另一支手電筒照它"], "ans": 3},
+  {"q": "《凌凌漆大戰金鎗客》中，達聞西把多種武器綁在一起的發明叫什麼？", "opts": ["要你命兩千", "要你命三千", "要你命五千", "要你命七千"], "ans": 1},
+  {"q": "《鹿鼎大帝》中，阿發平日用什麼職業掩飾密探身分？", "opts": ["婦科大夫", "跌打醫師", "針灸醫師", "牙科大夫"], "ans": 0},
+  {"q": "《鹿鼎大帝》中，妻子與阿發吵架後，常提議做什麼給他吃？", "opts": ["煮一碗粥", "炒一碗飯", "煮一碗麵", "蒸一碗蛋"], "ans": 2},
+  {"q": "《喜劇之王》中，尹天仇在街坊福利會排演的話劇是什麼？", "opts": ["茶館", "日出", "原野", "雷雨"], "ans": 3},
+  {"q": "《喜劇之王》中，柳飄飄聽過「我養妳啊」後，在哪一種交通工具上落淚？", "opts": ["計程車", "巴士", "電車", "火車"], "ans": 0},
+  {"q": "《喜劇之王》中，尹天仇經常研讀的書，書名是什麼？", "opts": ["導演的自我修養", "演員的自我修養", "編劇的自我修養", "喜劇的自我修養"], "ans": 1},
+  {"q": "《齊天大聖東遊記》中，至尊寶啟動月光寶盒時，要念什麼咒語？", "opts": ["波羅僧揭諦", "唵嘛呢叭咪吽", "南無阿彌陀佛", "般若波羅蜜"], "ans": 3},
+  {"q": "《齊天大聖西遊記》中，紫霞認定意中人的條件，是對方能做到什麼？", "opts": ["找到她的月光寶盒", "讓她的紫金鈴響起", "拔出她的紫青寶劍", "取下她的金剛圈"], "ans": 2},
+  {"q": "《齊天大聖西遊記》中，紫霞曾在至尊寶心中留下什麼？", "opts": ["一滴鮮血", "一滴眼淚", "一縷青絲", "一朵蓮花"], "ans": 1},
+  {"q": "《賭聖》中，周星馳飾演、到香港投靠三叔的青年叫什麼名字？", "opts": ["左頌星", "左頌昇", "周星祖", "周星星"], "ans": 0},
+  {"q": "《賭聖》中，三叔找來假扮綺夢、安撫阿星的女人，是由誰飾演？", "opts": ["苑瓊丹", "朱咪咪", "吳君如", "吳家麗"], "ans": 2},
+  {"q": "《逃學威龍》中，周星馳飾演的臥底警察叫什麼名字？", "opts": ["周星祖", "周星星", "左頌星", "周小龍"], "ans": 1},
+  {"q": "《逃學威龍》中，曹達華進入學校臥底時，假扮什麼職務？", "opts": ["校工", "校醫", "體育老師", "訓導主任"], "ans": 0},
+  {"q": "《武狀元蘇乞兒》中，皇帝御賜給蘇燦的飯缽，底部刻著哪四個字？", "opts": ["奉旨行乞", "御賜乞食", "欽賜行乞", "奉旨乞食"], "ans": 3},
+  {"q": "《唐伯虎點秋香》中，唐伯虎母親說的兵器譜，排名第一的是什麼？", "opts": ["書生奪命劍", "唐家霸王槍", "小李他媽的飛刀", "小李飛刀"], "ans": 2},
+  {"q": "《唐伯虎點秋香》中，唐伯虎假裝重病，用內力讓御醫把脈時聽見哪首曲子？", "opts": ["十面埋伏", "將軍令", "高山流水", "梅花三弄"], "ans": 1},
+  {"q": "《唐伯虎點秋香》中，迎娶秋香之前，唐伯虎家中已有幾位妻子？", "opts": ["六位", "八位", "七位", "九位"], "ans": 1},
+  {"q": "《功夫》中，苦力強隱藏的武功絕技是什麼？", "opts": ["洪家鐵線拳", "十二路譚腿", "太極拳", "五郎八卦棍"], "ans": 1},
+  {"q": "《功夫》中，賣油炸鬼的阿鬼，使出的是哪套棍法？", "opts": ["五郎八卦棍", "打狗棍法", "少林齊眉棍", "伏魔杖法"], "ans": 0},
+  {"q": "《功夫》中，包租公與包租婆自報江湖身分時，分別是誰？", "opts": ["郭靖與黃蓉", "令狐沖與任盈盈", "楊過與小龍女", "張無忌與趙敏"], "ans": 2},
+  {"q": "《食神》中，主角批評「皇帝炒飯」水分太多，指出炒飯應該使用哪種飯？", "opts": ["隔夜飯", "剛煮好的熱飯", "加水蒸軟的飯", "拌過醬油的飯"], "ans": 0},
+  {"q": "《食神》中，傳說中的中國廚藝訓練學院，其實是少林寺的哪個地方？", "opts": ["羅漢堂", "廚房", "達摩院", "藏經閣"], "ans": 1},
+  {"q": "《食神》中，火雞替主角擋槍後保住性命，是什麼擋住了子彈？", "opts": ["玉墜", "胸前的硬幣", "假牙", "口袋裡的手錶"], "ans": 2},
+  {"q": "《九品芝麻官》中，包龍星落難後打雜、學習吵架技巧的妓院叫什麼？", "opts": ["鳳來樓", "麗春院", "怡紅院", "醉仙樓"], "ans": 0},
+  {"q": "《九品芝麻官》中，戚家滅門案共有多少人遇害？", "opts": ["十二人", "十三人", "十四人", "十五人"], "ans": 1},
+  {"q": "《破壞之王》中，鬼王達除了「懦夫救星」之外，還自稱哪個威風稱號？", "opts": ["人間兇器", "終極殺人王", "魔鬼筋肉人", "無敵鐵金剛"], "ans": 2},
+  {"q": "《少林足球》中，阿梅工作的饅頭店，招牌上的店名是什麼？", "opts": ["甜蜜蜜饅頭", "香滿園饅頭", "好味道饅頭", "甜在心饅頭"], "ans": 3},
+  {"q": "《凌凌漆大戰金鎗客》中，奉命接近主角、後來愛上他的女特務叫什麼名字？", "opts": ["李香琴", "李香蘭", "柳飄飄", "何敏"], "ans": 0},
+  {"q": "《鹿鼎大帝》中，保龍一族四位密探的代號最後一字，可組成哪句吉祥話？", "opts": ["恭喜發財", "招財進寶", "吉祥如意", "四季平安"], "ans": 0},
+  {"q": "《整人專家》中，主角冒充車文晶混入車家，聲稱自己是車文傑的什麼人？", "opts": ["同母異父的弟弟", "同父異母的弟弟", "堂弟", "表弟"], "ans": 1},
+  {"q": "《整人專家》中，決戰時整人之霸原本要拿「誠實豆沙包」，卻拿錯了哪一種？", "opts": ["失憶豆沙包", "昏睡豆沙包", "發狂豆沙包", "謊言豆沙包"], "ans": 3},
+  {"q": "《百變金剛》中，主角李澤星與家中管家達叔，真正的關係是什麼？", "opts": ["叔叔與侄子", "舅舅與外甥", "同父異母的兄弟", "親生父子"], "ans": 3},
+  {"q": "《百變金剛》中，主角最後變成哪一種家電，將改造人對手熔掉？", "opts": ["微波爐", "電飯鍋", "電烤箱", "電磁爐"], "ans": 0},
+  {"q": "《鹿鼎記》中，陳近南替韋小寶運功解毒時，要化解的是哪種掌法的傷害？", "opts": ["寒冰綿掌", "玄冥神掌", "化骨綿掌", "摧心掌"], "ans": 2},
+  {"q": "《鹿鼎記》中，韋小寶奉命入宮尋找、與寶藏秘密有關的經書叫什麼？", "opts": ["四十一章經", "四十三章經", "四十二章經", "四十四章經"], "ans": 2},
+  {"q": "《威龍闖天關》中，周星馳飾演、能言善道的狀師叫什麼名字？", "opts": ["方唐鏡", "荒唐鏡", "宋世傑", "陳夢吉"], "ans": 2},
+  {"q": "《家有囍事》中，常歡的職業是什麼？", "opts": ["電影放映師", "唱片製作人", "音樂老師", "電台 DJ"], "ans": 3},
+  {"q": "《家有囍事》中，張曼玉飾演的電影迷打電話到電台時，說自己迷戀哪位女星的造型？", "opts": ["惠妮休斯頓", "珍娜傑克森", "瑪丹娜", "瑪麗亞凱莉"], "ans": 2},
+  {"q": "《濟公》中，吳孟達飾演、為幫助主角而下凡的羅漢是哪一位？", "opts": ["降龍羅漢", "托塔羅漢", "長眉羅漢", "伏虎羅漢"], "ans": 3},
+  {"q": "《濟公》中，主角要感化的乞丐、妓女與惡人，原本各自承受幾世的命運？", "opts": ["七世", "八世", "十世", "九世"], "ans": 3},
+  {"q": "《賭俠》中，劉德華飾演的賭俠，是哪一位賭壇高手的徒弟？", "opts": ["高進", "陳金城", "洪光", "高傲"], "ans": 0},
+  {"q": "《賭俠》中，陳法蓉飾演的龍九，是龍五的什麼親屬？", "opts": ["女兒", "妹妹", "姪女", "妻子"], "ans": 1},
+  {"q": "《逃學威龍2》中，周星星得罪上司後，被調去做哪一種警察？", "opts": ["重案組警探", "校園聯絡警員", "巡邏警察", "交通警察"], "ans": 3},
+  {"q": "《武狀元蘇乞兒》中，老乞丐傳授蘇燦、讓他能在睡夢中練習的武功叫什麼？", "opts": ["夢遊羅漢拳", "醉夢羅漢拳", "醉酒羅漢拳", "睡夢羅漢拳"], "ans": 3},
 ];
 let chanceResolve=null;
 async function chanceGame(line){
@@ -2314,8 +2398,8 @@ async function chanceGame(line){
   const force=$('#force').value; let pool=CHANCE_ORDER.map(p=>[p,okW(p)]).filter(([,w])=>w>0);
   if(force){ const f=pool.filter(([p])=>CELLS[p].type===force); if(f.length) pool=f; }
   const tot=pool.reduce((a,[,w])=>a+w,0); let x=Math.random()*tot, target=pool[pool.length-1][0]; for(const [p,w] of pool){ x-=w; if(x<0){ target=p; break; } }
-  const n=CHANCE_ORDER.length, dur=CFG.t.first, P1=dur*0.4, P2=dur*0.2, ramp=Math.min(120,dur*0.03), VF=CFG.v.fast*0.6, VM=CFG.v.mid, VE=CFG.v.end;
-  const speedAbs=t=>{ if(t<ramp) return VF*(t/ramp); if(t<P1) return VF; if(t<P1+P2) return VM; const u=Math.min(1,(t-P1-P2)/(dur-P1-P2)); return VE+(VM-VE)*(1-u)*(1-u); };
+  const n=CHANCE_ORDER.length, dur=CFG.t.first, VF=CFG.v.fast*0.6, VM=Math.min(CFG.v.mid,VF*0.8), VE=CFG.v.end;
+  const speedAbs=speedProfile(dur,VF,VM,VE);   /* v26.0：同主盤三段機械式曲線 */
   const SAMP=800, tbl=[0]; for(let i=1;i<=SAMP;i++){ const t=(i/SAMP)*dur; tbl.push(tbl[i-1]+speedAbs(t-dur/SAMP/2)*(dur/SAMP)/1000); }
   const need=tbl[SAMP]; const ti=CHANCE_ORDER.indexOf(target); const laps=Math.max(1,Math.round((need-ti)/n)); const NS=ti+laps*n; const scale=NS/need;
   const dist=t=>{ const q=Math.max(0,Math.min(SAMP,t/dur*SAMP)); const i=Math.floor(q), f=q-i; return ((i>=SAMP)?tbl[SAMP]:tbl[i]+(tbl[i+1]-tbl[i])*f)*scale; };
@@ -2424,9 +2508,9 @@ async function settle(round){
   const lines=round.lines.filter(l=>l.result&&l.result.kind!=='split'&&l.result.kind!=='fate');
   let total=0; const tb=$('#result tbody'); tb.innerHTML='';
   for(const l of lines){ const r=l.result; total+=r.G;
-    tb.insertAdjacentHTML('beforeend',`<tr><td>${l.id[0]==='F'?`<i class="lnb lnb${l.id}"><img src="${RPS_IMG[FICON[l.id]]}" alt=""></i>`:''}${lineName(l)}</td><td>${r.kind==='jp'?'JP':(CELLS[r.p].label||CELLS[r.p].item)}</td><td>${r.kind==='jp'?r.tier+' '+fmt(r.G):r.kind==='item'?r.item:fmt(r.V)}</td><td>${r.kind==='base'?fmtM(l.M):'—'}</td><td class="colA">${r.kind==='base'?'+'+(l.A/100)+'%':'—'}</td><td class="g">${r.kind==='item'?r.item:fmt(r.G)}</td></tr>`); }
+    tb.insertAdjacentHTML('beforeend',`<tr><td>${l.id[0]==='F'?`<i class="lnb lnb${l.id}"><img src="${RPS_IMG[FICON[l.id]]}" alt=""></i>`:''}${lineName(l)}</td><td>${r.kind==='jp'?'JP':(CELLS[r.p].label||CELLS[r.p].item)}</td><td>${r.kind==='jp'?r.tier+' '+fmt(r.G):r.kind==='item'?r.item:fmt(r.V)}</td><td class="colM">${r.kind==='base'?fmtM(l.M):'—'}</td><td class="colA">${r.kind==='base'?'+'+(l.A/100)+'%':'—'}</td><td class="g">${r.kind==='item'?r.item:fmt(r.G)}</td></tr>`); }
   round.total=total; round.settled=true; renderLines();
-  $('#result').classList.toggle('noA',!lines.some(l=>l.result.kind==='base'&&l.A>0)); $('#result').classList.toggle('dense',lines.length>=3);   /* v25.76 */
+  $('#result').classList.toggle('noA',!lines.some(l=>l.result.kind==='base'&&l.A>0)); $('#result').classList.toggle('noM',!lines.some(l=>l.result.kind==='base'&&l.M>1));   /* v25.94：無任何乘倍（皆 ×1）時不顯示倍率欄 */ $('#result').classList.toggle('dense',lines.length>=3);   /* v25.76 */
   const items=lines.filter(l=>l.result.kind==='item').map(l=>l.result.item); $('#result .total b').textContent=fmt(total)+(items.length?'　+ '+items.join('、'):''); const jpOnly=lines.length===1&&lines[0].result.kind==='jp'&&$('#jp').classList.contains('finale'); if(!jpOnly) scene('result'); Snd.settle();   /* v25.76：單線 JP 直接以置中的彩金標籤＋框呈現，不顯示結算表 */
   log(`本局結算 ${fmt(total)}，待領獎`,true);
   S.state='RESULT'; msg(''); $('#start').style.visibility=''; updateStars();
@@ -2457,6 +2541,32 @@ fit(); setTimeout(fit,100);
    彩帶從畫面左右下角噴射並覆蓋整個畫面（含遊戲舞台、遮罩、結算框、規則彈窗、橫放提示），
    3 秒，同一筆結算只播一次；pointer-events:none 所以不會擋到任何點擊。 */
 let CELEB=null, celebKey=0;
+/* v25.88：金幣噴泉 — 領獎時由舞台地 bar（獎格框底邊）向上噴出金幣約 3 秒（參考影片節奏：由疏到密、拋物線上升＋翻面旋轉後落下）；
+   金幣使用獎格內的金幣圖示；畫在 body 層 #fx 的獨立 canvas 上，不受任何元素遮擋 */
+let FOUNTAIN=null;
+function coinFountain(dur=3000,full=true){ try{   /* v25.90：full=true 為 JP 中獎的全高噴泉；false 為一般獎，高度約畫面 1/3 */
+  const fx=$('#fx'); if(!fx) return; if(FOUNTAIN){ FOUNTAIN.stop(); }
+  const cv=document.createElement('canvas'); cv.className='coinfx'; cv.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2'; fx.appendChild(cv);
+  const ctx=cv.getContext('2d'); const dpr=Math.min(2,window.devicePixelRatio||1);
+  const fit=()=>{ cv.width=Math.round(innerWidth*dpr); cv.height=Math.round(innerHeight*dpr); }; fit();
+  const img=new Image(); img.src=sprURL('coin'); const br=$('#board').getBoundingClientRect(); const st=$('#stage').getBoundingClientRect();
+  const k=Math.max(.55,Math.min(1.25,st.height/660));                       // 依舞台縮放比例調整速度與尺寸
+  const y0=br.bottom-6, xL=br.left+br.width*.18, xR=br.right-br.width*.18;  // 噴口：地 bar（獎格框底邊）中央約 64% 寬
+  const G=1900*k, coins=[]; let t0=0, last=0, emitAcc=0, alive=true, raf=0;
+  const spawn=n=>{ for(let i=0;i<n;i++){ const cx=xL+Math.random()*(xR-xL); const mid=(cx-(xL+xR)/2)/((xR-xL)/2);       // -1～1，越靠邊越向外噴
+      coins.push({x:cx,y:y0,vx:(mid*140+(Math.random()-.5)*260)*k,vy:-(full?(980+Math.random()*520):(760+Math.random()*170))*k,r:Math.random()*Math.PI*2,vr:(Math.random()-.5)*10,f:Math.random()*Math.PI*2,vf:6+Math.random()*8,s:(26+Math.random()*16)*k,a:1}); } };
+  const step=now=>{ if(!alive) return; if(!t0){ t0=now; last=now; } const t=now-t0, dt=Math.min(.05,(now-last)/1000); last=now;
+    if(t<dur){ const rate=(t<400?29:t<1200?70:96)*(t>dur-300?.5:1);   /* v25.91：密度再減 20%（36／88／120 → 29／70／96） */ emitAcc+=rate*dt; const n=Math.floor(emitAcc); emitAcc-=n; spawn(n); }
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,innerWidth,innerHeight);
+    for(let i=coins.length-1;i>=0;i--){ const c=coins[i]; c.vy+=G*dt; c.x+=c.vx*dt; c.y+=c.vy*dt; c.r+=c.vr*dt; c.f+=c.vf*dt; if(c.y>y0+40&&c.vy>0) c.a-=dt*4;   // 落回地 bar 以下即快速淡出
+      if(c.a<=0||c.y>innerHeight+60){ coins.splice(i,1); continue; }
+      const sx=Math.max(.12,Math.abs(Math.cos(c.f))); ctx.save(); ctx.globalAlpha=Math.max(0,c.a); ctx.translate(c.x,c.y); ctx.rotate(c.r); ctx.scale(sx,1);
+      ctx.shadowColor='rgba(255,200,60,.55)'; ctx.shadowBlur=8*k; if(img.complete&&img.naturalWidth) ctx.drawImage(img,-c.s/2,-c.s/2,c.s,c.s); else { ctx.fillStyle='#ffd23f'; ctx.beginPath(); ctx.arc(0,0,c.s/2,0,Math.PI*2); ctx.fill(); }
+      ctx.restore(); }
+    if(t>=dur&&!coins.length){ end(); return; } raf=requestAnimationFrame(step); };
+  const end=()=>{ if(!alive) return; alive=false; cancelAnimationFrame(raf); cv.remove(); if(FOUNTAIN&&FOUNTAIN.cv===cv) FOUNTAIN=null; };
+  FOUNTAIN={cv,stop:end}; raf=requestAnimationFrame(step);
+}catch(e){ console.warn('coinFountain',e); } }
 function celebrate(){ try{ if(!CELEB) CELEB=new LuckyGoCelebration($('#fx'),{duration:3,density:1,zIndex:1}); const k=++celebKey; CELEB.play({seed:9527+k}); }catch(e){ console.warn('celebration',e); } }
 /* init */
 startIdle();
