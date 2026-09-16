@@ -60,6 +60,9 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
 .btn:hover{border-color:var(--bezel)}
 .btn:focus-visible,#start:focus-visible,.chest:focus-visible{outline:2px solid var(--bezel2);outline-offset:2px}
 select.dev{height:36px;border-radius:18px;background:linear-gradient(#3a1a20,#24090d);color:var(--ink);border:1px solid #6a4a22;font-family:inherit;font-size:14px;font-weight:inherit;padding:0 12px;color-scheme:dark}   /* v25.6：字體大小顏色比照規則鍵 */
+/* v36.4：操作選單下拉箭頭比照聲音選單 — 關閉原生箭頭，改畫同尺寸（9×5px）、同色、同透明度、同間距（右 12px、與文字間隔 8px）的實心倒三角 */
+select.dev{-webkit-appearance:none;-moz-appearance:none;appearance:none;padding:0 29px 0 14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5' viewBox='0 0 9 5'%3E%3Cpolygon points='0,0 9,0 4.5,5' fill='%23fff6dc' fill-opacity='.9'/%3E%3C/svg%3E") no-repeat right 12px center/9px 5px,linear-gradient(#3a1a20,#24090d)}
+select.dev::-ms-expand{display:none}
 select.dev option{background:#24090d;color:#fff;font-size:14px}   /* v25.7：下拉清單深底白字，避免淺底淡字看不見 */
 
 /* middle */
