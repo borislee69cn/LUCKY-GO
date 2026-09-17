@@ -1018,9 +1018,10 @@ body.busy #start[disabled]:not(.claim):not(.zannen){display:none!important}
     <div class="left-slot">
       <button class="btn" id="rulesBtn">規則</button>
       <button class="btn menu" id="sndBtn" title="聲音選單">聲音選單<i class="chev"></i></button>
-      <span class="selwrap"><select class="dev menu" id="force" title="操作選單：強制停點類型（持續生效直到更改）／重置電瓶">
+      <span class="selwrap"><select class="dev menu" id="force" title="操作選單：強制停點類型（持續生效直到更改）／重置電瓶／重置題庫進度">
         <option value="">操作選單</option>   <!-- v36.2：選單排序調整 -->
         <option value="__reset">重置 5 電瓶</option>
+        <option value="__quizreset">重置題庫進度</option>   <!-- v36.11：清除已出過的趣味答題記錄，下次從第 1 題開始 -->
         <option value="purple">停燈:乘倍</option>
         <option value="red">停燈:升級</option>
         <option value="dual">停燈:雙線</option>
@@ -2134,7 +2135,8 @@ function sizeForce(){ const el=$('#force'); if(!el) return; const cs=getComputed
   const w=Math.ceil(g.measureText(t).width+parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+parseFloat(cs.borderLeftWidth)+parseFloat(cs.borderRightWidth));
   el.style.width=w+'px'; }
 $('#force').addEventListener('change',()=>setTimeout(sizeForce,0)); sizeForce(); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(sizeForce);
-$('#force').addEventListener('change',e=>{ if(e.target.value==='__reset'){ S.stars=CFG.MAX_STARS; S.rem=0; updateStars(true); log('重置電瓶 ×5',true); e.target.value=''; } });
+$('#force').addEventListener('change',e=>{ if(e.target.value==='__reset'){ S.stars=CFG.MAX_STARS; S.rem=0; updateStars(true); log('重置電瓶 ×5',true); e.target.value=''; }
+  else if(e.target.value==='__quizreset'){ quizReset(); log('重置題庫進度：下次趣味答題從第 1 題開始',true); e.target.value=''; } });   /* v36.11 */
 /* v25.98：讓啟動鍵與電瓶綠框的呼吸動畫從同一瞬間重新起跑（兩者皆 1s ease-in-out alternate，相位一致） */
 function syncBreath(){ const els=[$('#start'),$('#stars .ring .pg')].filter(Boolean); els.forEach(e=>{ e.style.animation='none'; }); void document.body.offsetWidth; els.forEach(e=>{ e.style.animation=''; }); }
 function updateStars(pop){ document.querySelectorAll('#batt .bt').forEach((el,i)=>{ const on=i<S.stars; if(pop&&on&&!el.classList.contains('on')){ el.classList.add('pop'); setTimeout(()=>el.classList.remove('pop'),600); } el.classList.toggle('on',on); }); const b=$('#start');
@@ -2737,11 +2739,16 @@ async function fateGame(line){
 }
 const CHANCE_SLOT={25:[0,0],0:[0,1],5:[0,2],20:[1,0],15:[1,1],10:[1,2]};
 // v23.3：趣味答題題庫（ans 為正確選項索引）
-/* v35.0：趣味答題出題 — 以洗牌牌堆逐題抽出，80 題全部出完才重洗；重洗後避免與上一題相同 */
-const QUIZ_DECK={deck:[],last:-1};
-function nextQuiz(){ if(!QUIZ_DECK.deck.length){ const d=CHANCE_QUIZ.map((_,i)=>i); for(let i=d.length-1;i>0;i--){ const j=rnd(i+1); [d[i],d[j]]=[d[j],d[i]]; } if(d.length>1&&d[d.length-1]===QUIZ_DECK.last){ [d[d.length-1],d[0]]=[d[0],d[d.length-1]]; } QUIZ_DECK.deck=d; }
-  const i=QUIZ_DECK.deck.pop(); QUIZ_DECK.last=i; return CHANCE_QUIZ[i]; }
-const CHANCE_QUIZ=[   // v25.85：周星馳經典電影 80 題加難版（使用者提供 txt；每次隨機抽 1 題）
+/* v36.11：趣味答題出題 — 依題庫順序第 1→80 題逐題出題、不重複；已出過的題號記錄於 localStorage（重新整理／重開仍接續），80 題全部出完才從第 1 題重新開始（v35.0 隨機牌堆已移除） */
+const QUIZ_PROG={key:'luckygo.quiz.used',used:[],loaded:false};
+function quizLoad(){ try{ const a=JSON.parse(localStorage.getItem(QUIZ_PROG.key)||'[]'); QUIZ_PROG.used=Array.isArray(a)?a.filter(i=>Number.isInteger(i)&&i>=0&&i<CHANCE_QUIZ.length):[]; }catch(e){ QUIZ_PROG.used=[]; } QUIZ_PROG.loaded=true; }
+function quizSave(){ try{ localStorage.setItem(QUIZ_PROG.key,JSON.stringify(QUIZ_PROG.used)); }catch(e){} }
+function quizReset(){ QUIZ_PROG.used=[]; QUIZ_PROG.loaded=true; quizSave(); }
+function nextQuiz(){ if(!QUIZ_PROG.loaded) quizLoad(); const N=CHANCE_QUIZ.length;
+  if(QUIZ_PROG.used.length>=N){ QUIZ_PROG.used=[]; log(`趣味答題：${N} 題已全部出完，重新從第 1 題開始`,true); }
+  let i=0; while(i<N&&QUIZ_PROG.used.includes(i)) i++;   /* 依序取第一個尚未出過的題號 */
+  QUIZ_PROG.used.push(i); quizSave(); log(`趣味答題：第 ${i+1}/${N} 題（本輪已出 ${QUIZ_PROG.used.length} 題）`); return Object.assign({no:i+1},CHANCE_QUIZ[i]); }
+const CHANCE_QUIZ=[   // v25.85：周星馳經典電影 80 題加難版（使用者提供 txt）；v36.11：依序出題、不重複，已出題號存於 localStorage
   {"q": "《唐伯虎點秋香》中，唐伯虎在華府的下人編號是？", "opts": ["9572", "9257", "9275", "9527"], "ans": 3},
   {"q": "《唐伯虎點秋香》中，唐伯虎在華府當書僮時，使用什麼名字？", "opts": ["華仁", "華安", "華文", "華武"], "ans": 1},
   {"q": "《唐伯虎點秋香》中，「小強」是被誰踩死的？", "opts": ["石榴姐", "秋香", "華夫人", "唐伯虎"], "ans": 0},
@@ -2877,7 +2884,7 @@ async function chanceGame(line){
     for(const p of CHANCE_ORDER){ clones[p].dataset.gx=parseFloat(clones[p].style.left); }
     $('#start').style.visibility='hidden';   // 答題期間主啟動鍵不顯示
     shift(dx); /* v34.2：面板左移不出聲 */ await wait(600); if(S.flow!==flow){ layer.remove(); $('#start').style.visibility=''; return null; }
-    const Q=nextQuiz();   /* v35.0：隨機且不重複出題（牌堆抽完才重洗，重洗後第一題不與上一題相同） */
+    const Q=nextQuiz();   /* v36.11：依題庫順序出題、不重複；已出過的題號記錄於 localStorage，80 題出完才重頭 */
     const qx=px+dx+pw+14, qw=innerR-qx, qy=py, qh=ph;
     const quiz=document.createElement('div'); quiz.className='quiz'; quiz.style.cssText=`left:${qx}px;top:${qy}px;width:${qw}px;height:${qh}px`;
     quiz.innerHTML=`<div class="qh">趣味答題</div><div class="qt"></div><div class="opts">${Q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><b>${'ABCD'[i]}</b><span>${o}</span></button>`).join('')}</div><div class="timer"><span class="num">10.0</span><div class="bar"><i></i></div></div><div class="verdict"></div>`;
