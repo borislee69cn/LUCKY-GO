@@ -806,9 +806,28 @@ body.busy #start[disabled]:not(.claim):not(.zannen){display:none!important}
    跑燈停止後直接淡出（0.45s），接續事件／結算畫面，本局內不再出現，領獎回待機才復現 */
 #logoLayer{position:absolute;left:12px;right:12px;top:32px;bottom:110px;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s .45s}
 #logoLayer.show{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
+/* v36.43：中獎跑馬燈 — 位於中央區上緣（頂列獎格下方、LOGO 上方），由右至左連續捲動；暱稱／獎項／數字三色區分；訊息間距＝捲速×2 秒；JP 點點樂全版模式時隱藏 */
+#ticker{position:absolute;top:14px;left:21.92%;right:21.92%;height:28px;   /* v36.49：框下移 6px（top 8 → 14）；v36.52：寬度再縮 20%（70.2% → 56.16%，兩側內縮 14.9% → 21.92%） */   /* v36.48：寬度縮減 10%（78% → 70.2%，兩側內縮 11% → 14.9%） */z-index:2;overflow:hidden;border-radius:14px;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.14);box-shadow:0 2px 8px rgba(0,0,0,.35) inset;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s .25s;   /* v36.46：不常駐 — 有訊息捲動時才顯示，跑完即隱藏 */
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent)}
+#ticker .trk{position:absolute;left:0;top:0;height:28px;display:flex;align-items:center;line-height:1;padding-bottom:1px;box-sizing:border-box;white-space:nowrap;font-size:16.5px;   /* v36.49：字體放大 10%（15 → 16.5px）；v36.53：改 flex 垂直置中（line-height 1），並上提 0.5px 修正中文字體偏下 */font-weight:700;letter-spacing:.04em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);will-change:transform;transform:translateX(var(--w,900px))}
+#ticker.on{opacity:1;visibility:visible;transition:opacity .2s ease,visibility 0s}   /* v36.46：有訊息時顯示框 */
+#ticker.hold{opacity:0!important;visibility:hidden!important;transition:none!important}   /* v36.54：命運／機會／JP 進行中暫停並隱藏，回到報獎畫面再接續 */
+#ticker .trk.run{animation:tickerRun var(--dur,10s) linear forwards}   /* v36.45：一次一則，單次播放；跑完（animationend）停 2 秒再接下一則 */
+#ticker .trk .m{display:inline-block;line-height:1}
+#ticker .trk b{font-weight:900}
+#ticker .trk .nk{color:#7ff0ff}        /* 暱稱：青藍 */
+#ticker .trk .pr{color:#ff9af0}        /* 獎項：粉紫 */
+#ticker .trk .num{color:#ffd54a}       /* 數字：金黃 */
+#ticker .trk .brand{font-weight:900;letter-spacing:.02em}
+/* v36.44：跑馬燈「LUCKY GO」比照 LOGO 逐字配色（由 LOGO 圖取樣）— L 紅 U 橙 C 黃 K 綠 Y 藍、GO 白（深紫描邊） */
+#ticker .trk .brand i{font-style:normal;text-shadow:0 1px 2px rgba(0,0,0,.9)}
+#ticker .trk .brand .l1{color:#fb393e}#ticker .trk .brand .l2{color:#fca30e}#ticker .trk .brand .l3{color:#fce429}#ticker .trk .brand .l4{color:#24e428}#ticker .trk .brand .l5{color:#1bafF8}
+#ticker .trk .brand .go{color:#eeeefc;text-shadow:0 0 1px #170169,0 0 2px #170169,0 1px 2px rgba(0,0,0,.9)}
+@keyframes tickerRun{from{transform:translateX(var(--w,900px))}to{transform:translateX(calc(-1 * var(--tw,900px)))}}
+#board.jpMode #ticker{opacity:0!important;visibility:hidden!important}   /* v36.54：改用 visibility（display:none 會重置 CSS 動畫，無法接續） */
 
 /* v28.5：按下啟動時 LOGO 快速由左至右文字掃光（參照提供影片：亮帶帶柔邊快速掠過字面，僅在字形內顯示） */
-#logoLayer .logoWrap{position:relative;display:block;width:min(39.1%,368px);margin-top:-14px;line-height:0}
+#logoLayer .logoWrap{position:relative;display:block;width:min(39.1%,368px);margin-top:4px;line-height:0}   /* v36.49：LOGO 下移 6px（-14 → -8）；v36.50：-8 → -2；v36.51：-2 → 4（累計下移 18px） */
 #logoLayer .logoWrap .logo{width:100%;margin-top:0}
 /* v34.6：啟動時 LOGO 震動（0.85s，與電流掃光同步；不放大、無殘影）— 小幅隨機位移＋微旋轉，前段強、尾段收斂 */
 #logoLayer .logoWrap{transform-origin:50% 50%}
@@ -1083,6 +1102,7 @@ body.busy #start[disabled]:not(.claim):not(.zannen){display:none!important}
   <div id="mid">
     <div id="cabinet"><div id="board">
       <div id="center">
+        <div id="ticker" aria-hidden="true"><div class="trk"></div></div>   <!-- v36.43：中獎跑馬燈（模擬 50 名玩家） -->
         <div id="status">
           <span>目前倍率<b id="sM">×1</b></span>
           <span>加成<b id="sA">+0%</b></span>
@@ -2159,7 +2179,8 @@ function scene(id){ document.querySelectorAll('.scene').forEach(s=>s.classList.t
 let logoGone=false;
 function logoVis(){ const L=document.getElementById('logoLayer'); if(!L) return; const sc=document.querySelector('.scene.show')?.id; const busy=document.getElementById('chanceLayer')||document.getElementById('fateLayer')||board.classList.contains('jpMode');
   if(sc==='idle'){ logoGone=false; } else if(sc!=='running'||busy){ logoGone=true; }
-  L.classList.toggle('show',!logoGone&&(sc==='idle'||sc==='running')); }
+  L.classList.toggle('show',!logoGone&&(sc==='idle'||sc==='running'));
+  if(window.tickerSync) window.tickerSync(!!busy); }   /* v36.54：跑馬燈與命運／機會／JP 同步暫停／接續 */
 { const _scene=scene; scene=function(id){ _scene(id); document.body.classList.toggle('busy',id!=='idle'); if(id!=='running') try{ Snd.runStop(); }catch(e){} if(id==='idle') try{ Snd.timerStop(true); Snd.reelStop(true); Snd.failStop(); Snd.musicResume(); }catch(e){} logoVis(); if(RING_DOTS&&id==='idle') try{ dotRingIdle(); }catch(e){} if(id==='idle') try{ spotlightsIdle(); }catch(e){} }; }
 new MutationObserver(logoVis).observe(board,{childList:true,attributes:true,attributeFilter:['class']}); logoVis();
 /* v26.4：閒置時預建投射燈與繞框光條 DOM，首跑不必臨時建構 */
@@ -2242,6 +2263,43 @@ const upgradable=line=>openCells(line).filter(p=>line.lv[p]<CFG.ladder.length-1)
 /* v36.41：規則窗「機會小遊戲機率權重」文字 — 依 CFG.wChance 產生 */
 (function(){ const el=$('#chanceOdds'); if(!el) return; const NM={purple:'乘倍',red:'升級',dual:'雙線',green:'加成',blue:'鎖定',jp:'JP'}; const W=CFG.wChance; const tot=Object.values(W).reduce((a,b)=>a+b,0);
   el.textContent=Object.keys(NM).map(k=>`${NM[k]} ${(W[k]/tot*100).toFixed(0)}%`).join('、'); })();
+/* ===================== v36.43：中獎跑馬燈（客端模擬，正式版改由伺服器推播） =====================
+   每輪隨機產生 50 則「恭喜玩家[暱稱]啟動LUCKY GO獲獎[獎項]金額星幣!」，暱稱 ≤5 中文字、獎項僅特殊燈／卡片／JP（一般獎格與鎖定不上跑馬燈）；
+   v36.45：一次只跑一則，由右進、左出，整則離開後停 gapSec（2 秒）再接下一則；50 則播完重新抽一批。捲速 TICKER.speed px/s */
+const TICKER={speed:100, gapSec:2, n:50, jpRate:.10,
+  names:['天天好心情','薯條加大','豬血糕','今天不回家','我是超人','頭又大','珍奶去冰','夜貓子','不想上班','發財貓','幸運星','鹹酥雞','滷肉飯','雞排不切','老司機','一路發','招財進寶','月光族','熬夜冠軍','魚丸湯','小籠包','蔥油餅','牛肉麵','豆花加糖','阿嬤的孫','隔壁老王','木瓜牛奶','綠豆沙','冬瓜茶','芒果冰','刈包','臭豆腐','甜不辣','蚵仔煎','棺材板','胡椒餅','鳳梨酥','太陽餅','地瓜球','燒仙草','波霸奶茶','草莓塔','布丁狗','柴犬','橘貓','阿財','土豪金','歐北來','隨便啦','躺平中','爆米花','佛系玩家','一夜致富','睡不著','吃貨','美式去冰','全糖少冰','下班了','中大獎','鹹魚翻身','小確幸','財神到','發發發','阿嬤我出運','真香','哈哈哈','皮卡皮','手氣王','冰火菠蘿','黑糖珍珠','肉鬆蛋餅','起司蛋餅','貢丸','阿伯','吉娃娃','麥香紅茶','紅豆餅','芋頭控','大吉大利'],
+  prizes:['乘倍獎','升級獎','雙線獎','加成獎','命運獎','機會獎']};
+(function(){ const box=$('#ticker'), trk=box&&box.querySelector('.trk'); if(!trk) return;
+  const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  const BRAND='<span class="brand"><i class="l1">L</i><i class="l2">U</i><i class="l3">C</i><i class="l4">K</i><i class="l5">Y</i> <i class="go">GO</i></span>';   /* v36.44：逐字上色，比照 LOGO */
+  const amount=()=>Math.max(1,Math.round((Math.pow(Math.random(),2)*49+1)*2))*500;   // 1,000～50,000，偏低
+  const jpTier=()=>{ const m=CFG.chestMix, ks=Object.keys(m), tot=ks.reduce((a,k)=>a+m[k],0); let r=Math.random()*tot; for(const k of ks){ r-=m[k]; if(r<0) return k; } return 'MINI'; };
+  function batch(){   // 產生一批 50 則訊息（HTML 字串）
+    const names=TICKER.names.slice().sort(()=>Math.random()-.5), out=[];
+    for(let i=0;i<TICKER.n;i++){ const nk=names[i%names.length]; let prize, body;
+      if(Math.random()<TICKER.jpRate){ const t=jpTier(); prize='JP獎'; body=`${t}彩金<b class="num">${fmt(CFG.jpAmount[t])}</b>星幣!`; }
+      else { prize=pick(TICKER.prizes); body=`<b class="num">${fmt(amount())}</b>星幣!`; }
+      out.push(`<span class="m">恭喜玩家<b class="nk">[${esc(nk)}]</b>啟動${BRAND}獲獎<b class="pr">[${prize}]</b>${body}</span>`); }
+    return out; }
+  let queue=[], timer=0, paused=false, gapStart=0;
+  function play(){   // 播放下一則：由右緣進入、整則離開左緣後結束
+    if(paused) return;   // v36.54：暫停中不起播
+    if(!queue.length) queue=batch();
+    trk.classList.remove('run'); trk.innerHTML=queue.shift();
+    const w=box.clientWidth, tw=trk.scrollWidth;
+    trk.style.setProperty('--w',w+'px'); trk.style.setProperty('--tw',tw+'px'); trk.style.setProperty('--dur',((w+tw)/TICKER.speed).toFixed(2)+'s');
+    void trk.offsetWidth; trk.classList.add('run'); box.classList.add('on'); }   // v36.46：開始捲動時才顯示框
+  trk.addEventListener('animationend',()=>{ trk.classList.remove('run'); trk.innerHTML=''; box.classList.remove('on'); clearTimeout(timer); gapStart=Date.now(); timer=setTimeout(play,TICKER.gapSec*1000); });   // 跑完即隱藏框，停 2 秒再接下一則
+  /* v36.54：命運／機會／JP 期間暫停 — 進行中的訊息凍結（animation-play-state）並隱藏框、等待中的 2 秒計時取消；
+     回到報獎畫面後：有凍結的訊息就從原位接續捲動，沒有則補足剩餘空檔再接下一則 */
+  let gapLeft=0;
+  window.tickerSync=function(busy){ if(busy===paused) return; paused=busy;
+    if(busy){ if(timer){ clearTimeout(timer); timer=0; gapLeft=Math.max(300,TICKER.gapSec*1000-(Date.now()-gapStart)); } trk.style.animationPlayState='paused'; box.classList.add('hold'); }
+    else { box.classList.remove('hold'); trk.style.animationPlayState='';
+      if(!trk.classList.contains('run')){ clearTimeout(timer); gapStart=Date.now()-(TICKER.gapSec*1000-(gapLeft||TICKER.gapSec*1000)); timer=setTimeout(play,gapLeft||TICKER.gapSec*1000); gapLeft=0; } } };
+  play();
+})();
 /* v25.76：命運三線不可停在同一格 — 抽到與其他獎勵線（待處理停點／已終局／起點以外的當前位置）相同的格子就重抽 */
 /* v25.87：規則擴大 — 雙線（L／R）與三線（F1～F3）等多線同局時，任何兩條獎勵線都不可停在同一格（單線 S 不受限） */
 function drawDistinct(line){ const round=S.round; let p=draw(line); if(!round||line.id[0]==='S'||round.lines.length<2) return p;
